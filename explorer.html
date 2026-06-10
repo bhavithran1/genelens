@@ -6,6 +6,8 @@
   <title>Genome Explorer — GeneLens AI</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="data/pathway-data.js"></script>
+  <script src="js/pathway-map.js"></script>
   <style>
     :root {
       --bg: #050a14; --bg2: #0a1628; --bg3: #0f1f3d;
@@ -283,19 +285,35 @@
       <div class="detail-body" id="detailBody"></div>
     </div>
 
-    <!-- PATHWAY VIEW -->
+    <!-- PATHWAY VIEW — Google Maps style -->
     <div id="pathwayView">
       <div class="pathway-header">
-        <h2>Cancer Signaling Pathways</h2>
-        <div class="pathway-selector">
-          <button class="pathway-btn active" onclick="setPathway('ras',this)">RAS/MAPK</button>
-          <button class="pathway-btn" onclick="setPathway('pi3k',this)">PI3K/AKT</button>
-          <button class="pathway-btn" onclick="setPathway('p53',this)">p53 / DNA Damage</button>
-          <button class="pathway-btn" onclick="setPathway('wnt',this)">Wnt / β-catenin</button>
-          <button class="pathway-btn" onclick="setPathway('cell',this)">Cell Cycle</button>
+        <h2>🗺️ Cancer Signaling Map</h2>
+        <div class="pathway-selector" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <span style="font-size:0.72rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Layer:</span>
+          <button class="pathway-btn active" id="layerDefault" onclick="setMapLayer('default',this)">Default</button>
+          <button class="pathway-btn" id="layerDrugs" onclick="setMapLayer('drugs',this)">🟢 Druggable</button>
+          <button class="pathway-btn" id="layerHeat" onclick="setMapLayer('heatmap',this)">🔥 Mut. Freq</button>
+          <div style="width:1px;height:20px;background:var(--border2);margin:0 4px;"></div>
+          <span style="font-size:0.72rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px;">Jump to:</span>
+          <button class="pathway-btn" onclick="jumpTo('KRAS')">KRAS</button>
+          <button class="pathway-btn" onclick="jumpTo('TP53')">TP53</button>
+          <button class="pathway-btn" onclick="jumpTo('EGFR')">EGFR</button>
+          <button class="pathway-btn" onclick="jumpTo('BRCA1')">BRCA1</button>
+          <button class="pathway-btn" onclick="jumpTo('APC')">APC</button>
         </div>
       </div>
-      <canvas id="pathwayCanvas"></canvas>
+      <div style="position:relative;flex:1;overflow:hidden;">
+        <canvas id="pathwayCanvas" style="display:block;width:100%;height:100%;cursor:grab;"></canvas>
+        <div id="mapLegend" style="position:absolute;top:12px;left:12px;background:rgba(5,10,20,0.88);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:10px 14px;font-size:0.75rem;pointer-events:none;">
+          <div style="font-weight:700;color:var(--accent);margin-bottom:6px;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;">Map Legend</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="color:#f59e0b;font-size:1rem;">⚡</span> Kinase / Oncogene</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="color:#3b82f6;font-size:1rem;">🛡</span> Tumor Suppressor</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="display:inline-block;width:30px;height:2px;background:#00d4ff;border-radius:1px;"></span> Activation</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="display:inline-block;width:30px;height:2px;background:#ef4444;border-radius:1px;border-top:2px dashed #ef4444;"></span> Inhibition</div>
+          <div style="display:flex;align-items:center;gap:6px;"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#00d4ff;"></span> Signal particles</div>
+        </div>
+      </div>
     </div>
 
   </div>
@@ -409,6 +427,7 @@ function updateCancerFilter() {
   document.getElementById('chrTitle').textContent = c.id === 'all' ? 'Human Cancer Genome — All Chromosomes' : `${c.name} — Mutated Genes`;
   drawChromosome();
   populateRightPanel();
+  if (_pathwayMap) _pathwayMap.setCancer(c.id === 'all' ? null : c.id);
 }
 
 // ── RIGHT PANEL ──
@@ -577,6 +596,8 @@ function backToChromosome() {
 }
 
 // ── VIEW TOGGLE ──
+let _pathwayMap = null;
+
 function setView(v) {
   currentView = v;
   document.getElementById('btnChr').classList.toggle('active', v === 'chromosome');
@@ -585,8 +606,8 @@ function setView(v) {
   document.getElementById('geneDetailView').style.display = 'none';
   document.getElementById('pathwayView').style.display = v === 'pathway' ? 'flex' : 'none';
   if (v === 'pathway') {
-    drawPathway(currentPathway);
-    showTip('💡 Click a pathway button above to switch between RAS, PI3K, p53, Wnt, and Cell Cycle diagrams');
+    initPathwayMap();
+    showTip('💡 Scroll to zoom · drag to pan · click a gene node to inspect · double-click to zoom in');
   }
   if (v === 'chromosome') {
     setTimeout(resizeChrCanvas, 50);
@@ -594,10 +615,79 @@ function setView(v) {
   }
 }
 
-// ── PATHWAY CANVAS ──
-const pwCanvas = document.getElementById('pathwayCanvas');
-const pwc = pwCanvas.getContext('2d');
+function initPathwayMap() {
+  const canvas = document.getElementById('pathwayCanvas');
+  const wrap   = canvas.parentElement;
+  canvas.width  = wrap.offsetWidth  || 900;
+  canvas.height = wrap.offsetHeight || 600;
 
+  if (_pathwayMap) { _pathwayMap.destroy(); _pathwayMap = null; }
+
+  _pathwayMap = new PathwayMap(
+    canvas,
+    PATHWAY_NODES,
+    PATHWAY_EDGES,
+    PATHWAY_REGIONS,
+    {
+      onNodeSelect: (nd) => {
+        // Show gene detail if it exists in our GENES array, else show popup
+        const gene = GENES.find(g => g.id === nd.id);
+        if (gene) {
+          setView('chromosome');
+          setTimeout(() => showGeneDetail(gene.id), 80);
+        } else {
+          showNodePopup(nd);
+        }
+      }
+    }
+  );
+}
+
+function showNodePopup(nd) {
+  // For pathway-only nodes not in the chromosome GENES list, show a tooltip
+  const existing = document.getElementById('nodePopup');
+  if (existing) existing.remove();
+  const popup = document.createElement('div');
+  popup.id = 'nodePopup';
+  popup.style.cssText = `
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+    background:rgba(10,22,40,0.97);border:1px solid rgba(0,212,255,0.3);
+    border-radius:14px;padding:1.5rem;z-index:200;max-width:420px;width:90%;
+    box-shadow:0 20px 60px rgba(0,0,0,0.6);font-family:'Inter',sans-serif;
+  `;
+  const typeIcon = nd.type === 'suppressor' ? '🛡' : nd.type === 'oncogene' ? '⚡' : nd.type === 'kinase' ? '🔑' : '⚙️';
+  const typeColor = nd.type === 'suppressor' ? '#3b82f6' : nd.type === 'oncogene' ? '#ef4444' : '#f59e0b';
+  popup.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;">
+      <div style="width:44px;height:44px;border-radius:50%;background:${nd.color}22;border:2px solid ${nd.color};display:flex;align-items:center;justify-content:center;font-size:1.2rem;">${typeIcon}</div>
+      <div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:800;color:#e2e8f0;">${nd.id}</div>
+        <div style="font-size:0.78rem;color:#94a3b8;">${nd.fullName}</div>
+      </div>
+      <button onclick="document.getElementById('nodePopup').remove()" style="margin-left:auto;background:none;border:none;color:#94a3b8;font-size:1.3rem;cursor:pointer;">✕</button>
+    </div>
+    <span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;background:${typeColor}22;color:${typeColor};border:1px solid ${typeColor}44;text-transform:uppercase;margin-bottom:0.75rem;">${nd.type}</span>
+    ${nd.mutRate > 0 ? `<span style="display:inline-block;padding:2px 10px;border-radius:12px;font-size:0.7rem;font-weight:700;background:rgba(239,68,68,0.15);color:#f87171;border:1px solid rgba(239,68,68,0.3);margin-left:6px;margin-bottom:0.75rem;">Mutated in ${nd.mutRate}% of cancers</span>` : ''}
+    <p style="font-size:0.88rem;color:#94a3b8;line-height:1.7;margin-bottom:1rem;">${nd.desc || ''}</p>
+    ${nd.drugs && nd.drugs.length > 0 ? `<div style="margin-bottom:0.5rem;"><div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:6px;">Targeted Drugs</div><div style="display:flex;flex-wrap:wrap;gap:5px;">${nd.drugs.map(d=>`<span style="padding:3px 10px;border-radius:5px;font-size:0.75rem;font-weight:600;background:rgba(16,185,129,0.1);color:#6ee7b7;border:1px solid rgba(16,185,129,0.2);">${d}</span>`).join('')}</div></div>` : ''}
+  `;
+  document.body.appendChild(popup);
+  popup.addEventListener('click', e => e.stopPropagation());
+  setTimeout(() => { document.addEventListener('click', () => popup.remove(), { once: true }); }, 100);
+}
+
+function setMapLayer(layer, btn) {
+  document.querySelectorAll('#pathwayView .pathway-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (_pathwayMap) _pathwayMap.setLayer(layer);
+}
+
+function jumpTo(nodeId) {
+  if (!_pathwayMap) { setView('pathway'); setTimeout(() => jumpTo(nodeId), 300); return; }
+  _pathwayMap.panToNode(nodeId);
+}
+
+// ── KEEP OLD PATHWAYS OBJECT (referenced by nothing now but safe to leave) ──
 const PATHWAYS = {
   ras: {
     title: 'RAS/MAPK Signaling Pathway',
@@ -832,14 +922,16 @@ function drawPathway(key) {
   pwc.fillText('── activates      ⊣ inhibits      ⚡ commonly mutated', 12, h - 10);
 }
 
-function setPathway(key, btn) {
-  document.querySelectorAll('.pathway-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  drawPathway(key);
-}
+function setPathway(key, btn) { /* legacy no-op — PathwayMap replaces per-pathway views */ }
 
 window.addEventListener('resize', () => {
-  if (currentView === 'pathway') drawPathway(currentPathway);
+  if (currentView === 'pathway' && _pathwayMap) {
+    const canvas = document.getElementById('pathwayCanvas');
+    const wrap = canvas.parentElement;
+    canvas.width  = wrap.offsetWidth  || 900;
+    canvas.height = wrap.offsetHeight || 600;
+  }
+  if (currentView === 'chromosome') resizeChrCanvas();
 });
 
 // ── SEARCH ──
@@ -865,8 +957,12 @@ searchInput.addEventListener('input', () => {
 function selectSearchResult(id) {
   searchResults.classList.remove('open');
   searchInput.value = '';
-  if (currentView !== 'chromosome') setView('chromosome');
-  setTimeout(() => showGeneDetail(id), 100);
+  if (currentView === 'pathway') {
+    jumpTo(id);
+  } else {
+    if (currentView !== 'chromosome') setView('chromosome');
+    setTimeout(() => showGeneDetail(id), 100);
+  }
 }
 
 document.addEventListener('click', e => {

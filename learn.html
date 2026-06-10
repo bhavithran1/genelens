@@ -6,6 +6,7 @@
   <title>Learning Paths — GeneLens AI</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <script src="data/lessons.js"></script>
   <style>
     :root {
       --bg:#050a14;--bg2:#0a1628;--bg3:#0f1f3d;
@@ -541,21 +542,41 @@ const PATHS = {
   intermediate: {
     id:'intermediate', label:'Cancer Genomics Deep Dive', color:'#00d4ff',
     modules: [
-      { id:'i0', title:'Breast Cancer Genomics (BRCA1/2)', icon:'🎀', duration:'60 min', free:false, xp:250, section:'Cancer Types', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>Upgrade to GeneLens Pro to access the full Intermediate curriculum — 24 in-depth modules covering breast, lung, colorectal, and brain cancer genomics, signaling pathway mechanics, and clinical mutation interpretation.</div>', quiz:null },
-      { id:'i1', title:'Lung Cancer Driver Mutations', icon:'🫁', duration:'55 min', free:false, xp:250, section:'Cancer Types', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>Covers EGFR, KRAS, ALK, ROS1, RET, MET, and KEAP1 alterations in non-small cell and small cell lung cancer.</div>', quiz:null },
-      { id:'i2', title:'PI3K/AKT/mTOR Pathway In-Depth', icon:'⚙️', duration:'70 min', free:false, xp:300, section:'Pathways', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>Deep dive into the PI3K/AKT/mTOR cascade: feedback loops, compensatory pathways, and all approved pathway inhibitors.</div>', quiz:null },
-      { id:'i3', title:'Immunotherapy Biomarkers', icon:'🛡️', duration:'65 min', free:false, xp:300, section:'Pathways', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>TMB, MSI, PD-L1 scoring, tumor inflammation score, HLA typing, and emerging predictive biomarkers for checkpoint inhibitors.</div>', quiz:null },
-      { id:'i4', title:'Reading Mutation Landscapes', icon:'📊', duration:'50 min', free:false, xp:250, section:'Data Interpretation', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>Interpreting OncoPrint, waterfall plots, oncoprint matrices, co-mutation analysis, and mutual exclusivity from TCGA data.</div>', quiz:null },
+      { id:'i0', title:'Breast Cancer Genomics', icon:'🎗', duration:'40 min', free:true, xp:150, section:'Cancer Types',
+        get content(){ return (typeof LESSON_DB !== 'undefined' ? LESSON_DB.intermediate[0].content : ''); },
+        get quiz(){ return (typeof LESSON_DB !== 'undefined' ? { q: LESSON_DB.intermediate[0].quiz.question, opts: LESSON_DB.intermediate[0].quiz.options, correct: LESSON_DB.intermediate[0].quiz.correct, exp: LESSON_DB.intermediate[0].quiz.exp } : null); } },
+      { id:'i1', title:'Lung Cancer Driver Mutations', icon:'🫁', duration:'35 min', free:true, xp:150, section:'Cancer Types',
+        get content(){ return (typeof LESSON_DB !== 'undefined' ? LESSON_DB.intermediate[1].content : ''); },
+        get quiz(){ return (typeof LESSON_DB !== 'undefined' ? { q: LESSON_DB.intermediate[1].quiz.question, opts: LESSON_DB.intermediate[1].quiz.options, correct: LESSON_DB.intermediate[1].quiz.correct, exp: LESSON_DB.intermediate[1].quiz.exp } : null); } },
+      { id:'i2', title:'PI3K/AKT/mTOR Pathway In-Depth', icon:'⚙️', duration:'45 min', free:true, xp:160, section:'Pathways',
+        get content(){ return (typeof LESSON_DB !== 'undefined' ? LESSON_DB.intermediate[2].content : ''); },
+        get quiz(){ return (typeof LESSON_DB !== 'undefined' ? { q: LESSON_DB.intermediate[2].quiz.question, opts: LESSON_DB.intermediate[2].quiz.options, correct: LESSON_DB.intermediate[2].quiz.correct, exp: LESSON_DB.intermediate[2].quiz.exp } : null); } },
+      { id:'i3', title:'Immunotherapy Biomarkers', icon:'🔬', duration:'40 min', free:true, xp:160, section:'Pathways',
+        get content(){ return (typeof LESSON_DB !== 'undefined' ? LESSON_DB.intermediate[3].content : ''); },
+        get quiz(){ return (typeof LESSON_DB !== 'undefined' ? { q: LESSON_DB.intermediate[3].quiz.question, opts: LESSON_DB.intermediate[3].quiz.options, correct: LESSON_DB.intermediate[3].quiz.correct, exp: LESSON_DB.intermediate[3].quiz.exp } : null); } },
+      { id:'i4', title:'Reading Mutation Landscapes', icon:'📊', duration:'35 min', free:true, xp:170, section:'Data Interpretation',
+        get content(){ return (typeof LESSON_DB !== 'undefined' ? LESSON_DB.intermediate[4].content : ''); },
+        get quiz(){ return (typeof LESSON_DB !== 'undefined' ? { q: LESSON_DB.intermediate[4].quiz.question, opts: LESSON_DB.intermediate[4].quiz.options, correct: LESSON_DB.intermediate[4].quiz.correct, exp: LESSON_DB.intermediate[4].quiz.exp } : null); } },
     ]
   },
   advanced: {
     id:'advanced', label:'Computational Oncogenomics', color:'#7c3aed',
     modules: [
-      { id:'a0', title:'Variant Calling & Annotation', icon:'💻', duration:'90 min', free:false, xp:400, section:'Bioinformatics', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>NGS alignment (BWA-MEM), variant calling (GATK Mutect2), annotation (VEP, OncoKB), and filtering for somatic mutations.</div>', quiz:null },
-      { id:'a1', title:'Somatic vs Germline Mutations', icon:'🧫', duration:'75 min', free:false, xp:400, section:'Bioinformatics', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>Paired tumor-normal analysis, germline calling, allele frequencies in WES vs WGS, and clinical reporting standards.</div>', quiz:null },
-      { id:'a2', title:'Copy Number Variation Analysis', icon:'📈', duration:'80 min', free:false, xp:400, section:'Advanced Analysis', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>CNV detection from sequencing data, GISTIC2, focal vs. arm-level events, and clinical impact of amplifications/deletions.</div>', quiz:null },
-      { id:'a3', title:'Tumor Mutational Burden (TMB)', icon:'🔢', duration:'60 min', free:false, xp:350, section:'Advanced Analysis', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>TMB calculation from WES and panel data, cutoff selection, comparison across assays, and clinical utility in immunotherapy selection.</div>', quiz:null },
-      { id:'a4', title:'Machine Learning in Oncogenomics', icon:'🤖', duration:'120 min', free:false, xp:500, section:'Computational', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>Random forests for driver gene prediction, deep learning on mutation signatures, survival analysis with genomic features, and multi-omics integration.</div>', quiz:null },
+      { id:'a0', title:'Variant Calling & Annotation', icon:'💻', duration:'60 min', free:true, xp:200, section:'Bioinformatics',
+        get content(){ return (typeof LESSON_DB !== 'undefined' ? LESSON_DB.advanced[0].content : ''); },
+        get quiz(){ return (typeof LESSON_DB !== 'undefined' ? { q: LESSON_DB.advanced[0].quiz.question, opts: LESSON_DB.advanced[0].quiz.options, correct: LESSON_DB.advanced[0].quiz.correct, exp: LESSON_DB.advanced[0].quiz.exp } : null); } },
+      { id:'a1', title:'Somatic vs Germline Variants', icon:'🧬', duration:'55 min', free:true, xp:200, section:'Bioinformatics',
+        get content(){ return (typeof LESSON_DB !== 'undefined' ? LESSON_DB.advanced[1].content : ''); },
+        get quiz(){ return (typeof LESSON_DB !== 'undefined' ? { q: LESSON_DB.advanced[1].quiz.question, opts: LESSON_DB.advanced[1].quiz.options, correct: LESSON_DB.advanced[1].quiz.correct, exp: LESSON_DB.advanced[1].quiz.exp } : null); } },
+      { id:'a2', title:'Copy Number Variation Analysis', icon:'📈', duration:'55 min', free:true, xp:210, section:'Advanced Analysis',
+        get content(){ return (typeof LESSON_DB !== 'undefined' ? LESSON_DB.advanced[2].content : ''); },
+        get quiz(){ return (typeof LESSON_DB !== 'undefined' ? { q: LESSON_DB.advanced[2].quiz.question, opts: LESSON_DB.advanced[2].quiz.options, correct: LESSON_DB.advanced[2].quiz.correct, exp: LESSON_DB.advanced[2].quiz.exp } : null); } },
+      { id:'a3', title:'Tumor Mutational Burden: Deep Dive', icon:'⚖️', duration:'50 min', free:true, xp:210, section:'Advanced Analysis',
+        get content(){ return (typeof LESSON_DB !== 'undefined' ? LESSON_DB.advanced[3].content : ''); },
+        get quiz(){ return (typeof LESSON_DB !== 'undefined' ? { q: LESSON_DB.advanced[3].quiz.question, opts: LESSON_DB.advanced[3].quiz.options, correct: LESSON_DB.advanced[3].quiz.correct, exp: LESSON_DB.advanced[3].quiz.exp } : null); } },
+      { id:'a4', title:'Machine Learning in Oncogenomics', icon:'🤖', duration:'75 min', free:true, xp:220, section:'Computational',
+        get content(){ return (typeof LESSON_DB !== 'undefined' ? LESSON_DB.advanced[4].content : ''); },
+        get quiz(){ return (typeof LESSON_DB !== 'undefined' ? { q: LESSON_DB.advanced[4].quiz.question, opts: LESSON_DB.advanced[4].quiz.options, correct: LESSON_DB.advanced[4].quiz.correct, exp: LESSON_DB.advanced[4].quiz.exp } : null); } },
     ]
   }
 };
