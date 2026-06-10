@@ -606,7 +606,7 @@ function setView(v) {
   document.getElementById('geneDetailView').style.display = 'none';
   document.getElementById('pathwayView').style.display = v === 'pathway' ? 'flex' : 'none';
   if (v === 'pathway') {
-    initPathwayMap();
+    setTimeout(initPathwayMap, 30);
     showTip('💡 Scroll to zoom · drag to pan · click a gene node to inspect · double-click to zoom in');
   }
   if (v === 'chromosome') {

@@ -159,6 +159,13 @@
     .btn-primary{background:linear-gradient(135deg,var(--accent),#0099cc);color:#000;font-weight:700;padding:0.85rem 2rem;border-radius:10px;border:none;cursor:pointer;font-size:1rem;font-family:'Inter',sans-serif;transition:opacity 0.2s;}
     .btn-primary:hover{opacity:0.9;}
     @keyframes fadeSlide{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    /* STEP UI */
+    .step-dots{display:flex;gap:8px;justify-content:center;margin-bottom:1.5rem;}
+    .step-dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.1);transition:all 0.3s;}
+    .step-dot.done{background:var(--accent3);}
+    .step-dot.active{background:var(--accent);transform:scale(1.3);box-shadow:0 0 8px var(--accent);}
+    .game-zone{background:var(--card);border:1px solid var(--border2);border-radius:14px;padding:1.5rem;margin-top:0.5rem;}
+    @keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(0,212,255,0.35)}50%{box-shadow:0 0 0 8px rgba(0,212,255,0)}}
   </style>
 </head>
 <body>
@@ -258,7 +265,12 @@ const PATHS = {
           <h3>What you'll master in this path</h3>
           <p>Over 12 modules, you'll understand DNA, mutations, oncogenes, tumor suppressors, cancer hallmarks, and how to navigate the cancer genome — all in about 4 hours of learning.</p>
           <p>Ready? Let's start with the most fundamental question in all of cancer biology.</p>`,
-        quiz: { q:'What makes GeneLens different from a textbook?', opts:['It has more pages','It is interactive — you explore, visualize, and answer questions','It costs more','It only covers breast cancer'], correct:1, exp:'GeneLens combines interactive maps, real genomic data, visual diagrams, and knowledge checks. Passive reading is less effective than active exploration and retrieval practice.' }
+        quiz: { q:'What makes GeneLens different from a textbook?', opts:['It has more pages','It is interactive — you explore, visualize, and answer questions','It costs more','It only covers breast cancer'], correct:1, exp:'GeneLens combines interactive maps, real genomic data, visual diagrams, and knowledge checks. Passive reading is less effective than active exploration and retrieval practice.' },
+        steps: [
+          { type:'hook', emoji:'🗺️', stat:'100K+', label:'cancer genomes sequenced — the revolution has already started', sub:'Every tumor in this database was once a medical mystery. You\'re about to learn the language oncologists use to decode them — step by step.', color:'#10b981' },
+          { type:'learn' },
+          { type:'quiz' }
+        ]
       },
       {
         id:'b1', title:'What is DNA?', icon:'🧬', duration:'20 min', free:true,
@@ -287,7 +299,13 @@ const PATHS = {
           <h3>Chromosomes: packaging DNA</h3>
           <p>DNA is wrapped around proteins called <strong>histones</strong> and compacted into structures called <strong>chromosomes</strong>. Humans have 46 chromosomes arranged in 23 pairs. You inherit one copy of each chromosome from your mother and one from your father.</p>
           <p>If you stretched out all the DNA from a single human cell, it would be about <strong>2 meters long</strong> — yet it fits inside a nucleus that is less than 0.01 millimeters in diameter.</p>`,
-        quiz: { q:'Which bases pair together in DNA?', opts:['A-G and T-C','A-T and G-C','A-C and G-T','A-A and T-T'], correct:1, exp:'Adenine (A) always pairs with Thymine (T), and Guanine (G) always pairs with Cytosine (C). These are called Watson-Crick base pairs. The complementary pairing is what allows DNA to be accurately copied.' }
+        quiz: { q:'Which bases pair together in DNA?', opts:['A-G and T-C','A-T and G-C','A-C and G-T','A-A and T-T'], correct:1, exp:'Adenine (A) always pairs with Thymine (T), and Guanine (G) always pairs with Cytosine (C). These are called Watson-Crick base pairs. The complementary pairing is what allows DNA to be accurately copied.' },
+        steps: [
+          { type:'hook', emoji:'🧬', stat:'3.2 Billion', label:'base pairs in every single cell of your body — right now', sub:'If you uncoiled all the DNA from one cell it would stretch 2 metres. Yet it fits inside a nucleus 6 micrometres wide. Let\'s understand how.', color:'#00d4ff' },
+          { type:'learn' },
+          { type:'game', gameId:'basePairing', title:'🎮 Base Pairing Challenge', instructions:'DNA bases only bind to one specific partner. Click the correct complementary base for each one shown.' },
+          { type:'quiz' }
+        ]
       },
       {
         id:'b2', title:'Genes, Proteins & Instructions', icon:'🔧', duration:'18 min', free:true,
@@ -312,7 +330,12 @@ const PATHS = {
             <li><strong>Transcription factors</strong> — proteins that control which genes are turned on or off</li>
           </ul>
           <div class="info-box warning"><div class="info-box-title">⚠️ Cancer connection</div>When a mutation changes the DNA sequence of a gene, it can change the protein that gene produces — making it overactive, underactive, or completely non-functional. This is fundamentally how cancer starts.</div>`,
-        quiz: { q:'What is the correct order of the Central Dogma?', opts:['Protein → RNA → DNA','RNA → DNA → Protein','DNA → RNA → Protein','DNA → Protein → RNA'], correct:2, exp:'The Central Dogma describes the flow of genetic information: DNA is transcribed into RNA, which is translated into protein. The sequence DNA → RNA → Protein was established by Francis Crick in 1958 and remains one of biology\'s foundational principles.' }
+        quiz: { q:'What is the correct order of the Central Dogma?', opts:['Protein → RNA → DNA','RNA → DNA → Protein','DNA → RNA → Protein','DNA → Protein → RNA'], correct:2, exp:'The Central Dogma describes the flow of genetic information: DNA is transcribed into RNA, which is translated into protein. The sequence DNA → RNA → Protein was established by Francis Crick in 1958 and remains one of biology\'s foundational principles.' },
+        steps: [
+          { type:'hook', emoji:'🔧', stat:'~20,000', label:'genes in your genome can produce over 100,000 distinct proteins', sub:'Alternative splicing means one gene can make many protein variants. The central dogma is the blueprint that explains how genetic instructions become the workers that run your cells.', color:'#7c3aed' },
+          { type:'learn' },
+          { type:'quiz' }
+        ]
       },
       {
         id:'b3', title:'What is a Mutation?', icon:'⚡', duration:'22 min', free:true,
@@ -346,7 +369,12 @@ const PATHS = {
             <li><strong>Driver mutations</strong> — provide a growth advantage; are selected for during tumor evolution</li>
             <li><strong>Passenger mutations</strong> — happen to be present but don't contribute to cancer growth; arise from the same mutational processes but don't help the tumor</li>
           </ul>`,
-        quiz: { q:'A mutation changes one amino acid to a different amino acid. What type of mutation is this?', opts:['Frameshift','Splice site','Missense','Nonsense'], correct:2, exp:'A missense mutation is a single nucleotide change that results in a different amino acid being incorporated into the protein. The most famous example is BRAF V600E (valine→glutamic acid) in melanoma, which constitutively activates BRAF kinase.' }
+        quiz: { q:'A mutation changes one amino acid to a different amino acid. What type of mutation is this?', opts:['Frameshift','Splice site','Missense','Nonsense'], correct:2, exp:'A missense mutation is a single nucleotide change that results in a different amino acid being incorporated into the protein. The most famous example is BRAF V600E (valine→glutamic acid) in melanoma, which constitutively activates BRAF kinase.' },
+        steps: [
+          { type:'hook', emoji:'⚡', stat:'10,000+', label:'DNA lesions happen in each of your cells — every single day', sub:'Your repair machinery fixes nearly all of them. The ones that slip through become mutations. And very rarely, just the right combination causes cancer.', color:'#f59e0b' },
+          { type:'learn' },
+          { type:'quiz' }
+        ]
       },
       {
         id:'b4', title:'Oncogenes: The Accelerators', icon:'🚀', duration:'25 min', free:true,
@@ -369,7 +397,13 @@ const PATHS = {
           HER2 is a receptor tyrosine kinase amplified in aggressive breast cancers. It drives proliferation via PI3K and RAS pathways. <strong>Trastuzumab (Herceptin)</strong> — an antibody that blocks HER2 — transformed HER2+ breast cancer from one of the deadliest subtypes to one of the most treatable. This is one of targeted therapy's greatest success stories.</div>
           <h3>Key principle: oncogenes require only ONE mutant copy</h3>
           <p>This is a critical concept. Oncogene mutations are <strong>dominant</strong> — even if you have one normal copy of the gene, the mutant copy is enough to drive cancer. This is in contrast to tumor suppressor genes (next lesson), which typically require BOTH copies to be lost.</p>`,
-        quiz: { q:'KRAS mutations cause cancer because they:', opts:['Completely delete the KRAS gene','Lock KRAS in an active state, constitutively driving cell proliferation','Increase DNA repair activity','Cause KRAS to produce a shorter protein'], correct:1, exp:'Oncogenic KRAS mutations (G12D, G12V, G12C, etc.) occur in the GTPase domain and impair the ability of KRAS to hydrolyze GTP to GDP. This locks KRAS in its active GTP-bound form, constitutively activating downstream pathways (RAF/MEK/ERK, PI3K/AKT) regardless of external growth signals.' }
+        quiz: { q:'KRAS mutations cause cancer because they:', opts:['Completely delete the KRAS gene','Lock KRAS in an active state, constitutively driving cell proliferation','Increase DNA repair activity','Cause KRAS to produce a shorter protein'], correct:1, exp:'Oncogenic KRAS mutations (G12D, G12V, G12C, etc.) occur in the GTPase domain and impair the ability of KRAS to hydrolyze GTP to GDP. This locks KRAS in its active GTP-bound form, constitutively activating downstream pathways (RAF/MEK/ERK, PI3K/AKT) regardless of external growth signals.' },
+        steps: [
+          { type:'hook', emoji:'🚀', stat:'25%', label:'of ALL human cancers carry a KRAS mutation', sub:'That\'s 1 in 4 cancers. KRAS was considered "undruggable" for 40 years — until Sotorasib changed everything in 2021. Understanding why requires understanding oncogenes.', color:'#ef4444' },
+          { type:'learn' },
+          { type:'game', gameId:'krasToggle', title:'⚙️ KRAS: Normal vs Mutant', instructions:'Toggle between normal and mutant KRAS. See how a single amino acid change permanently activates the entire proliferation cascade.' },
+          { type:'quiz' }
+        ]
       },
       {
         id:'b5', title:'Tumor Suppressors: The Brakes', icon:'🛑', duration:'25 min', free:true,
@@ -397,7 +431,13 @@ const PATHS = {
           <p>Women with germline BRCA1 mutations have a ~65-70% lifetime risk of breast cancer and ~40-45% risk of ovarian cancer. BRCA-mutant tumors are <strong>exquisitely sensitive to PARP inhibitors</strong> (Olaparib, Niraparib) because they already lack one DNA repair pathway — blocking PARP removes a second pathway, causing synthetic lethality.</p>
           <div class="info-box"><div class="info-box-title">💊 Clinical Implication: Synthetic Lethality</div>
           PARP inhibitors (PARPi) work through "synthetic lethality": BRCA-mutant cells rely on PARP for DNA repair. When PARPi blocks PARP in a BRCA-deficient tumor, the cell has NO way to repair DNA → cell death. Normal cells (with intact BRCA1/2) can compensate, so they survive. This is highly tumor-selective therapy.</div>`,
-        quiz: { q:'The Two-Hit Hypothesis states that tumor suppressors require:', opts:['One mutation in one copy of the gene','Inactivation of BOTH copies of the gene','Overexpression of the gene','A frameshift mutation only'], correct:1, exp:'Knudson\'s Two-Hit Hypothesis states that since we have two copies of most genes, both copies of a tumor suppressor must be inactivated for cancer-promoting loss of function. In hereditary cancer syndromes, patients inherit one inactivated copy (first hit) and only need a second somatic event (second hit) to lose all tumor suppressor function.' }
+        quiz: { q:'The Two-Hit Hypothesis states that tumor suppressors require:', opts:['One mutation in one copy of the gene','Inactivation of BOTH copies of the gene','Overexpression of the gene','A frameshift mutation only'], correct:1, exp:'Knudson\'s Two-Hit Hypothesis states that since we have two copies of most genes, both copies of a tumor suppressor must be inactivated for cancer-promoting loss of function. In hereditary cancer syndromes, patients inherit one inactivated copy (first hit) and only need a second somatic event (second hit) to lose all tumor suppressor function.' },
+        steps: [
+          { type:'hook', emoji:'🛑', stat:'50%+', label:'of all human cancers have lost TP53 — the Guardian of the Genome', sub:'When TP53 fails, cells with damaged DNA survive and keep dividing. Understanding why takes just 2 clicks.', color:'#3b82f6' },
+          { type:'learn' },
+          { type:'game', gameId:'twoHit', title:'🎮 The Two-Hit Hypothesis', instructions:'TP53 requires BOTH copies to be lost before protection fails. Click each gene copy to mutate it and see what happens.' },
+          { type:'quiz' }
+        ]
       },
       {
         id:'b6', title:'The Hallmarks of Cancer', icon:'🎯', duration:'30 min', free:true,
@@ -424,7 +464,13 @@ const PATHS = {
           </ul>
           <div class="info-box"><div class="info-box-title">🔑 Why hallmarks matter clinically</div>
           Each hallmark represents a therapeutic target. Imatinib targets proliferative signaling (BCR-ABL). Olaparib targets genome instability (PARP). Pembrolizumab targets immune evasion (PD-1). Bevacizumab targets angiogenesis (VEGF). The hallmarks framework predicted many of today's most important cancer therapies.</div>`,
-        quiz: { q:'Which hallmark allows tumor cells to avoid being killed by the immune system?', opts:['Enabling replicative immortality','Inducing angiogenesis','Avoiding immune destruction','Deregulating cellular metabolism'], correct:2, exp:'Avoiding immune destruction is the hallmark responsible for tumor immune evasion. Mechanisms include PD-L1 expression (which binds PD-1 on T cells, inactivating them), downregulation of MHC-I (making tumors invisible to T cells), and recruitment of immunosuppressive regulatory T cells. This hallmark is the basis for immune checkpoint inhibitor therapy (anti-PD-1, anti-CTLA-4).' }
+        quiz: { q:'Which hallmark allows tumor cells to avoid being killed by the immune system?', opts:['Enabling replicative immortality','Inducing angiogenesis','Avoiding immune destruction','Deregulating cellular metabolism'], correct:2, exp:'Avoiding immune destruction is the hallmark responsible for tumor immune evasion. Mechanisms include PD-L1 expression (which binds PD-1 on T cells, inactivating them), downregulation of MHC-I (making tumors invisible to T cells), and recruitment of immunosuppressive regulatory T cells. This hallmark is the basis for immune checkpoint inhibitor therapy (anti-PD-1, anti-CTLA-4).' },
+        steps: [
+          { type:'hook', emoji:'🎯', stat:'10', label:'capabilities every cancer must acquire to survive and spread', sub:'Hanahan & Weinberg\'s landmark paper defined the hallmarks that unify all cancers. Each one is a potential therapy target. How many can you name?', color:'#f59e0b' },
+          { type:'learn' },
+          { type:'game', gameId:'hallmarks', title:'🎮 Discover the Hallmarks', instructions:'Click each card to reveal one of the 10 hallmarks of cancer. Can you uncover all of them?' },
+          { type:'quiz' }
+        ]
       },
       {
         id:'b7', title:'Kinases: The Signal Switches', icon:'⚙️', duration:'20 min', free:true,
@@ -448,7 +494,13 @@ const PATHS = {
           </table>
           <div class="info-box warning"><div class="info-box-title">⚠️ The Resistance Problem</div>
           Almost all patients on kinase inhibitors eventually develop <strong>acquired resistance</strong>. Common mechanisms: secondary mutations in the kinase domain (e.g., EGFR T790M after erlotinib), bypass pathway activation (e.g., MET amplification after EGFR TKI), and histological transformation. This drives the development of next-generation inhibitors (e.g., Osimertinib for T790M).</div>`,
-        quiz: { q:'What does a kinase inhibitor do?', opts:['It activates the kinase to promote tumor growth','It blocks the ATP-binding pocket of a mutant kinase, preventing it from sending growth signals','It replaces the mutant gene with a normal copy','It causes the kinase to degrade itself'], correct:1, exp:'Kinase inhibitors (TKIs) work by competing with ATP for the kinase\'s ATP-binding pocket. When ATP cannot bind, the kinase cannot phosphorylate its targets — the growth signal is blocked. The specificity for mutant kinases (vs. normal kinases) comes from conformational differences in the binding pocket caused by the cancer-driving mutation.' }
+        quiz: { q:'What does a kinase inhibitor do?', opts:['It activates the kinase to promote tumor growth','It blocks the ATP-binding pocket of a mutant kinase, preventing it from sending growth signals','It replaces the mutant gene with a normal copy','It causes the kinase to degrade itself'], correct:1, exp:'Kinase inhibitors (TKIs) work by competing with ATP for the kinase\'s ATP-binding pocket. When ATP cannot bind, the kinase cannot phosphorylate its targets — the growth signal is blocked. The specificity for mutant kinases (vs. normal kinases) comes from conformational differences in the binding pocket caused by the cancer-driving mutation.' },
+        steps: [
+          { type:'hook', emoji:'⚙️', stat:'580', label:'kinases in the human proteome — and cancer corrupts them all', sub:'Gleevec, Osimertinib, Vemurafenib — the modern era of targeted cancer therapy is built on blocking mutant kinases. See how signals flow through the cascade.', color:'#00d4ff' },
+          { type:'learn' },
+          { type:'game', gameId:'cascade', title:'⚡ Kinase Cascade Simulator', instructions:'Click each node to send the signal downstream. Watch how a growth factor activates a chain of kinases to ultimately drive cell division.' },
+          { type:'quiz' }
+        ]
       },
       {
         id:'b8', title:'Reading a Mutation Report', icon:'📋', duration:'20 min', free:true,
@@ -476,7 +528,12 @@ const PATHS = {
           Reports often include <strong>TMB (mutations per megabase)</strong>. High TMB (>10 mut/Mb) means the tumor has many mutations → many neoantigens → more likely to respond to <strong>immune checkpoint inhibitors</strong> (e.g., pembrolizumab). TMB-high is an FDA-approved biomarker for pembrolizumab across tumor types.</div>
           <h3>MSI status</h3>
           <p><strong>Microsatellite Instability (MSI)</strong> is tested alongside mutation profiling. MSI-High (MSI-H) indicates mismatch repair deficiency — associated with very high mutation burden and excellent response to immunotherapy. Dostarlimab produced 100% response rates in MSI-H rectal cancer in a 2022 trial.</p>`,
-        quiz: { q:'A genomic report shows KRAS G12C with 40% allele frequency. This means:', opts:['40% of the patient\'s KRAS gene is normal','About 40% of sequenced tumor cells carry the KRAS G12C mutation','The patient has a 40% chance of responding to treatment','KRAS is amplified 40 times'], correct:1, exp:'Allele frequency (AF) refers to what percentage of the sequenced DNA reads carry that specific variant. In tumor sequencing, 40% AF suggests approximately 40% of tumor cells (or 80% with heterozygous clonal mutation) carry the KRAS G12C mutation, making this a clonal, dominant driver mutation. This patient would be a candidate for KRAS G12C inhibitors like Sotorasib.' }
+        quiz: { q:'A genomic report shows KRAS G12C with 40% allele frequency. This means:', opts:['40% of the patient\'s KRAS gene is normal','About 40% of sequenced tumor cells carry the KRAS G12C mutation','The patient has a 40% chance of responding to treatment','KRAS is amplified 40 times'], correct:1, exp:'Allele frequency (AF) refers to what percentage of the sequenced DNA reads carry that specific variant. In tumor sequencing, 40% AF suggests approximately 40% of tumor cells (or 80% with heterozygous clonal mutation) carry the KRAS G12C mutation, making this a clonal, dominant driver mutation. This patient would be a candidate for KRAS G12C inhibitors like Sotorasib.' },
+        steps: [
+          { type:'hook', emoji:'📋', stat:'1 Test', label:'can identify 300+ actionable mutations from a single tumor biopsy', sub:'Next-generation sequencing produces a mutation report that oncologists use to choose targeted therapy. Learning to read it is a core skill in modern precision medicine.', color:'#10b981' },
+          { type:'learn' },
+          { type:'quiz' }
+        ]
       },
       {
         id:'b9', title:'Immunotherapy & Cancer', icon:'🛡️', duration:'22 min', free:true,
@@ -501,7 +558,13 @@ const PATHS = {
           </ul>
           <h3>CAR-T cell therapy</h3>
           <p>A newer approach: take a patient's T cells, engineer them in the lab to express a <strong>Chimeric Antigen Receptor (CAR)</strong> targeting a tumor antigen (e.g., CD19 in B-cell lymphoma), and infuse them back. CAR-T has produced durable remissions in previously untreatable blood cancers.</p>`,
-        quiz: { q:'How do PD-1 inhibitors (like Pembrolizumab) work against cancer?', opts:['They directly kill cancer cells with a toxin','They block the PD-1 checkpoint, allowing T cells to recognize and attack cancer cells','They amplify the cancer\'s DNA damage response','They inhibit VEGF to block blood vessel formation'], correct:1, exp:'PD-1 inhibitors (anti-PD-1 antibodies like pembrolizumab/nivolumab) bind to PD-1 on T cells, blocking PD-L1 (expressed on tumor cells) from inactivating the T cell. This releases the brake, allowing T cells to recognize tumor neoantigens and mount an effective anti-tumor immune response.' }
+        quiz: { q:'How do PD-1 inhibitors (like Pembrolizumab) work against cancer?', opts:['They directly kill cancer cells with a toxin','They block the PD-1 checkpoint, allowing T cells to recognize and attack cancer cells','They amplify the cancer\'s DNA damage response','They inhibit VEGF to block blood vessel formation'], correct:1, exp:'PD-1 inhibitors (anti-PD-1 antibodies like pembrolizumab/nivolumab) bind to PD-1 on T cells, blocking PD-L1 (expressed on tumor cells) from inactivating the T cell. This releases the brake, allowing T cells to recognize tumor neoantigens and mount an effective anti-tumor immune response.' },
+        steps: [
+          { type:'hook', emoji:'🛡️', stat:'2018', label:'Nobel Prize awarded for unleashing the immune system on cancer', sub:'James Allison & Tasuku Honjo discovered immune checkpoints. Pembrolizumab now treats 20+ cancer types. Flip the switch and see how it works.', color:'#22d3ee' },
+          { type:'learn' },
+          { type:'game', gameId:'immunoSim', title:'🎮 Immune Checkpoint Simulator', instructions:'Toggle Pembrolizumab on and off to see how PD-1 blockade reactivates exhausted T cells against the tumor.' },
+          { type:'quiz' }
+        ]
       },
       {
         id:'b10', title:'Your First Genome Navigation', icon:'🗺️', duration:'15 min', free:true,
@@ -535,7 +598,12 @@ const PATHS = {
           </ul>
           <div class="info-box"><div class="info-box-title">🚀 What's next?</div>
           You're ready for the <strong>Cancer Genomics Deep Dive</strong> (Intermediate path). You'll explore cancer-type-specific genomics, signaling pathways in depth, and learn to interpret full mutation landscapes. Upgrade to Pro to unlock.</div>`,
-        quiz: { q:'You see a gene labeled as a "tumor suppressor" in the explorer. Which statement is most accurate about this gene?', opts:['One mutant copy is enough to cause cancer','Its normal role is to promote uncontrolled cell division','Both copies must usually be inactivated for cancer-promoting effects','It always drives cancer through gene amplification'], correct:2, exp:'Tumor suppressors follow the Two-Hit Hypothesis — both functional copies must be lost for the cancer-promoting effect. This is because tumor suppressors are "recessive" at the cellular level: as long as one functional copy remains, it can perform the protective function (controlling cell cycle, promoting apoptosis, repairing DNA).' }
+        quiz: { q:'You see a gene labeled as a "tumor suppressor" in the explorer. Which statement is most accurate about this gene?', opts:['One mutant copy is enough to cause cancer','Its normal role is to promote uncontrolled cell division','Both copies must usually be inactivated for cancer-promoting effects','It always drives cancer through gene amplification'], correct:2, exp:'Tumor suppressors follow the Two-Hit Hypothesis — both functional copies must be lost for the cancer-promoting effect. This is because tumor suppressors are "recessive" at the cellular level: as long as one functional copy remains, it can perform the protective function (controlling cell cycle, promoting apoptosis, repairing DNA).' },
+        steps: [
+          { type:'hook', emoji:'🗺️', stat:'You\'re Ready!', label:'Navigate the real cancer genome — starting right now', sub:'Everything you learned in this path is visualized live in the GeneLens Explorer. TP53, KRAS, BRCA1 — they\'re all waiting for you on the map.', color:'#10b981' },
+          { type:'learn' },
+          { type:'quiz' }
+        ]
       },
     ]
   },
@@ -666,6 +734,7 @@ function showLessonPreview(lesson, idx, onStart) {
   const colorMap = { beginner:'#10b981', intermediate:'#00d4ff', advanced:'#7c3aed' };
   const col = colorMap[currentPathId];
   const path = PATHS[currentPathId];
+  window._lessonPreviewStart = onStart;
 
   wrap.innerHTML = `
     <div style="max-width:520px;margin:4rem auto 0;animation:fadeSlide 0.4s ease">
@@ -686,7 +755,7 @@ function showLessonPreview(lesson, idx, onStart) {
           <span style="font-weight:700;color:${col}">${lesson.xp} XP</span>
         </div>
       </div>
-      <button onclick="(${onStart.toString()})()" style="width:100%;padding:1rem;background:linear-gradient(135deg,${col},${col}99);color:#000;font-weight:700;border:none;border-radius:12px;cursor:pointer;font-size:1rem;font-family:Inter,sans-serif;transition:opacity 0.2s" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">
+      <button onclick="window._lessonPreviewStart()" style="width:100%;padding:1rem;background:linear-gradient(135deg,${col},${col}99);color:#000;font-weight:700;border:none;border-radius:12px;cursor:pointer;font-size:1rem;font-family:Inter,sans-serif;transition:opacity 0.2s" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">
         Let's start →
       </button>
       ${idx > 0 ? `<button onclick="goLesson(${idx-1})" style="width:100%;margin-top:8px;padding:0.7rem;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:10px;cursor:pointer;font-size:0.9rem;font-family:Inter,sans-serif">← Go back</button>` : ''}
@@ -698,13 +767,17 @@ function renderLesson(idx) {
   const path = PATHS[currentPathId];
   const lesson = path.modules[idx];
   if (!lesson) return;
-
   if (idx >= path.modules.length) { showCompletion(); return; }
 
-  // Show preview card first (unless already completed)
-  showLessonPreview(lesson, idx, () => renderLessonContent(idx));
+  // Step-based lesson: bypass preview card, use interactive step cards
+  if (lesson.steps && !state.completed[lesson.id]) {
+    currentStep = 0;
+    renderStepCard(idx, 0);
+    return;
+  }
 
-  // If already completed, go straight to content
+  // Standard lesson: show preview then full content
+  showLessonPreview(lesson, idx, () => renderLessonContent(idx));
   if (state.completed[lesson.id]) renderLessonContent(idx);
 }
 
@@ -783,7 +856,8 @@ function answerKC(selected) {
   const fb = document.getElementById('kcFeedback');
   fb.className = `kc-feedback show ${isCorrect ? 'correct' : 'wrong'}`;
   fb.innerHTML = (isCorrect ? '✅ Correct! ' : '❌ Not quite — ') + exp;
-  document.getElementById('lessonNextBtn').disabled = false;
+  const nb = document.getElementById('lessonNextBtn') || document.getElementById('stepNextBtn');
+  if (nb) nb.disabled = false;
   if (!state.completed[lessonId]) {
     state.completed[lessonId] = true;
     state.xp = (state.xp || 0) + xp;
@@ -851,6 +925,240 @@ function showAchievement(name, desc) {
   document.getElementById('achDesc').textContent = desc;
   popup.classList.add('show');
   setTimeout(() => popup.classList.remove('show'), 4000);
+}
+
+// ── STEP-BASED RENDERING ──
+let currentStep = 0;
+
+function renderStepCard(lessonIdx, stepIdx) {
+  const lesson = PATHS[currentPathId].modules[lessonIdx];
+  if (!lesson || !lesson.steps) return;
+  currentStep = stepIdx;
+  const step = lesson.steps[stepIdx];
+  const total = lesson.steps.length;
+  const col = {beginner:'#10b981',intermediate:'#00d4ff',advanced:'#7c3aed'}[currentPathId];
+  const wrap = document.getElementById('lessonWrap');
+  const dots = lesson.steps.map((_,i) =>
+    `<div class="step-dot ${i<stepIdx?'done':i===stepIdx?'active':''}"></div>`
+  ).join('');
+
+  let inner = '';
+  if (step.type === 'hook') {
+    inner = `<div style="text-align:center;padding:2.5rem 1rem 2rem;animation:fadeSlide 0.4s ease">
+      <div style="font-size:3.5rem;margin-bottom:0.75rem">${step.emoji}</div>
+      <div style="font-size:2.6rem;font-weight:800;color:${step.color||col};font-family:'Space Grotesk',sans-serif;line-height:1.2;margin-bottom:0.6rem">${step.stat}</div>
+      <div style="font-size:1rem;color:var(--text);font-weight:600;margin-bottom:0.75rem;max-width:500px;margin-left:auto;margin-right:auto">${step.label}</div>
+      <div style="font-size:0.9rem;color:var(--text2);max-width:480px;margin:0 auto;line-height:1.75">${step.sub}</div>
+    </div>`;
+  } else if (step.type === 'learn') {
+    inner = `<div class="lesson-content" style="animation:fadeSlide 0.4s ease">${lesson.content}</div>`;
+  } else if (step.type === 'game') {
+    inner = `<div style="animation:fadeSlide 0.4s ease">
+      <div style="text-align:center;margin-bottom:1.1rem">
+        <h3 style="font-size:1.1rem;font-weight:700;margin-bottom:0.4rem">${step.title}</h3>
+        <p style="color:var(--text2);font-size:0.86rem">${step.instructions}</p>
+      </div>
+      <div id="gameZone" class="game-zone"></div>
+    </div>`;
+  } else if (step.type === 'quiz') {
+    _activeQuiz = { ...lesson.quiz, lessonId: lesson.id, xp: lesson.xp };
+    inner = `<div style="animation:fadeSlide 0.4s ease">
+      <div class="kc-section" style="margin:0">
+        <div class="kc-title">🧠 Knowledge Check</div>
+        <div class="kc-question">${lesson.quiz.q}</div>
+        <div class="kc-options">
+          ${lesson.quiz.opts.map((o,i)=>`<button class="kc-btn" onclick="answerKC(${i})">${o}</button>`).join('')}
+        </div>
+        <div class="kc-feedback" id="kcFeedback"></div>
+      </div>
+    </div>`;
+  }
+
+  const isLast = stepIdx === total - 1;
+  wrap.innerHTML = `<div style="max-width:720px;width:100%;padding:1.5rem;margin:0 auto">
+    <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem">
+      <div style="font-size:1.2rem">${lesson.icon}</div>
+      <div>
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:${col}">${currentPathId} · module ${lessonIdx+1}</div>
+        <div style="font-size:0.95rem;font-weight:700">${lesson.title}</div>
+      </div>
+      <div style="margin-left:auto;font-size:0.78rem;color:var(--text3)">Step ${stepIdx+1} / ${total}</div>
+    </div>
+    <div class="step-dots">${dots}</div>
+    ${inner}
+    <div class="lesson-nav" style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border2)">
+      ${stepIdx>0
+        ? `<button class="nav-btn prev" onclick="prevStep(${lessonIdx})">← Back</button>`
+        : lessonIdx>0
+        ? `<button class="nav-btn prev" onclick="goLesson(${lessonIdx-1})">← Previous</button>`
+        : '<div></div>'}
+      <div></div>
+      <button class="nav-btn next" id="stepNextBtn" onclick="nextStep(${lessonIdx})" ${step.type==='quiz'?'disabled':''}>
+        ${isLast ? '🎉 Complete Lesson' : 'Continue →'}
+      </button>
+    </div>
+  </div>`;
+
+  setTimeout(() => {
+    if (step.type === 'learn') {
+      if (lesson.id==='b1') drawBasePairs();
+      if (lesson.id==='b2') drawCentralDogma();
+      if (lesson.id==='b6') drawHallmarks();
+    }
+    if (step.type === 'game') {
+      const gmap = {
+        basePairing: initBasePairingGame,
+        krasToggle:  initKRASGame,
+        twoHit:      initTwoHitGame,
+        hallmarks:   initHallmarksGame,
+        cascade:     initCascadeGame,
+        immunoSim:   initImmunoGame,
+      };
+      if (gmap[step.gameId]) gmap[step.gameId]();
+    }
+  }, 30);
+  document.getElementById('mainArea').scrollTo(0,0);
+}
+
+function nextStep(lessonIdx) {
+  const lesson = PATHS[currentPathId].modules[lessonIdx];
+  if (!lesson || !lesson.steps) return;
+  if (currentStep >= lesson.steps.length - 1) { goLesson(lessonIdx + 1); }
+  else { renderStepCard(lessonIdx, currentStep + 1); }
+}
+
+function prevStep(lessonIdx) {
+  if (currentStep > 0) { renderStepCard(lessonIdx, currentStep - 1); }
+  else if (lessonIdx > 0) { goLesson(lessonIdx - 1); }
+}
+
+// ── INTERACTIVE GAMES ──
+function initBasePairingGame() {
+  const zone = document.getElementById('gameZone'); if (!zone) return;
+  const allB = ['A','T','G','C'], prs = {A:'T',T:'A',G:'C',C:'G'};
+  const qs = [...allB,...allB].sort(()=>Math.random()-0.5).slice(0,6);
+  let qi = 0, sc = 0;
+  window._bpAns = function(chosen, correct) {
+    const ok = chosen===correct; if (ok) sc++;
+    qi++;
+    zone.innerHTML = `<div style="text-align:center;padding:1.5rem;font-size:1.3rem;font-weight:700;color:${ok?'#10b981':'#ef4444'}">${ok?'✅ Correct!':'❌ It\'s '+correct+'!'}</div>`;
+    setTimeout(render, 700);
+  };
+  function render() {
+    if (qi >= qs.length) {
+      zone.innerHTML = `<div style="text-align:center;padding:1.5rem"><div style="font-size:2.5rem">🧬</div><div style="font-size:1.5rem;font-weight:800;color:${sc>=5?'#10b981':'#f59e0b'};margin:0.5rem 0">${sc}/6 Correct</div><div style="color:var(--text2);font-size:0.9rem">${sc>=5?'Perfect! A↔T and G↔C mastered.':sc>=4?'Great work!':'Tip: A pairs with T, G pairs with C'}</div><button onclick="document.getElementById('stepNextBtn').disabled=false" style="margin-top:1rem;padding:8px 20px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-family:Inter,sans-serif">Continue →</button></div>`;
+      return;
+    }
+    const base = qs[qi], opts = [...allB].sort(()=>Math.random()-0.5);
+    zone.innerHTML = `<div style="text-align:center"><div style="font-size:0.78rem;color:var(--text3);margin-bottom:0.75rem">Round ${qi+1} of ${qs.length} · Score: ${sc}</div><div style="font-size:0.95rem;color:var(--text2);margin-bottom:0.5rem">What base pairs with:</div><div style="font-size:2.5rem;font-weight:800;color:var(--accent);font-family:'Space Grotesk',sans-serif;margin-bottom:1.25rem">${base}</div><div style="display:flex;gap:10px;justify-content:center">${opts.map(o=>`<button onclick="window._bpAns('${o}','${prs[base]}')" style="width:54px;height:54px;border-radius:10px;border:2px solid var(--border2);background:rgba(255,255,255,0.04);color:var(--text);font-size:1.3rem;font-weight:800;cursor:pointer;font-family:'Space Grotesk',sans-serif;transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">${o}</button>`).join('')}</div></div>`;
+  }
+  render();
+}
+
+function initKRASGame() {
+  const zone = document.getElementById('gameZone'); if (!zone) return;
+  let mut = false;
+  const nodes = ['Growth Factor','EGFR Receptor','KRAS','RAF → MEK','ERK','Proliferation'];
+  window._krasMode = function(m) { mut=m; r(); };
+  function r() {
+    zone.innerHTML = `<div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-bottom:1.25rem">
+        <button onclick="window._krasMode(false)" style="padding:7px 18px;border-radius:8px;border:2px solid ${!mut?'#10b981':'var(--border2)'};background:${!mut?'rgba(16,185,129,0.12)':'transparent'};color:${!mut?'#10b981':'var(--text2)'};font-weight:700;cursor:pointer;font-family:Inter,sans-serif">⚡ Normal KRAS</button>
+        <button onclick="window._krasMode(true)" style="padding:7px 18px;border-radius:8px;border:2px solid ${mut?'#ef4444':'var(--border2)'};background:${mut?'rgba(239,68,68,0.12)':'transparent'};color:${mut?'#ef4444':'var(--text2)'};font-weight:700;cursor:pointer;font-family:Inter,sans-serif">⚠️ Mutant KRAS</button>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+        ${nodes.map((n,i) => { const isK=i===2, lit=mut, c=mut?'#ef4444':i===0?'#10b981':'#00d4ff', on=lit||(i===0&&!mut); return `<div style="display:flex;flex-direction:column;align-items:center"><div style="padding:8px 20px;border-radius:9px;border:2px solid ${on?c:'rgba(255,255,255,0.08)'};background:${on?c+'20':'transparent'};color:${on?c:'var(--text3)'};font-weight:${isK?800:600};font-size:0.85rem;min-width:210px;text-align:center;transition:all 0.35s">${isK&&mut?'⚠️ ':''} ${n}${isK&&mut?' (STUCK ON)':''}</div>${i<nodes.length-1?`<div style="color:${on&&i<nodes.length-2?c:'rgba(255,255,255,0.12)'};margin:2px 0">↓</div>`:''}</div>`; }).join('')}
+      </div>
+      <div style="margin-top:1rem;padding:0.65rem 0.85rem;border-radius:8px;background:${mut?'rgba(239,68,68,0.08)':'rgba(16,185,129,0.08)'};border:1px solid ${mut?'rgba(239,68,68,0.2)':'rgba(16,185,129,0.2)'};font-size:0.82rem;color:${mut?'#fca5a5':'#6ee7b7'};text-align:center;line-height:1.5">${mut?'G12D: GTPase impaired → permanently GTP-bound → constant RAF/ERK signaling → uncontrolled growth':'Normal: KRAS cycles ON↔OFF with growth factor signals. Signal stops when factor is withdrawn.'}</div>
+      <div style="text-align:center;margin-top:1rem"><button onclick="document.getElementById('stepNextBtn').disabled=false" style="padding:8px 20px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-family:Inter,sans-serif">Got it →</button></div>
+    </div>`;
+  }
+  r();
+}
+
+function initTwoHitGame() {
+  const zone = document.getElementById('gameZone'); if (!zone) return;
+  let hits = 0;
+  window._hitTP53 = function(i) { if (hits<=i) { hits=i+1; r(); } };
+  function r() {
+    zone.innerHTML = `<div style="text-align:center">
+      <div style="font-size:0.88rem;color:var(--text2);margin-bottom:1.25rem">Click each TP53 copy to mutate it. Watch what happens to cell cycle protection.</div>
+      <div style="display:flex;justify-content:center;gap:2rem;margin-bottom:1.25rem">
+        ${[0,1].map(i=>`<div onclick="window._hitTP53(${i})" style="cursor:${hits>i?'default':'pointer'};width:110px;padding:1rem 0.75rem;border-radius:12px;border:2px solid ${hits>i?'#ef4444':'#10b981'};background:${hits>i?'rgba(239,68,68,0.1)':'rgba(16,185,129,0.1)'};transition:all 0.35s;user-select:none"><div style="font-size:1.8rem">${hits>i?'💥':'🛡️'}</div><div style="font-weight:700;color:${hits>i?'#ef4444':'#10b981'};margin-top:0.5rem;font-size:0.85rem">Copy ${i+1}</div><div style="font-size:0.72rem;color:var(--text3);margin-top:3px">${hits>i?'Mutated':'Normal ✓'}</div></div>`).join('')}
+      </div>
+      ${hits===0?'<div style="font-size:0.85rem;color:#10b981;padding:0.6rem;border-radius:8px;background:rgba(16,185,129,0.08)">Both copies functional → p53 guards the cell cycle ✅</div>':''}
+      ${hits===1?'<div style="font-size:0.85rem;color:var(--accent4);padding:0.6rem;border-radius:8px;background:rgba(245,158,11,0.08)">⚠️ First hit! One copy mutated — but the remaining copy still protects.</div>':''}
+      ${hits>=2?`<div style="font-size:0.88rem;color:#fca5a5;padding:0.75rem;border-radius:8px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);margin-bottom:1rem">💥 <strong>Both copies lost!</strong> No p53 → cells with DNA damage survive and divide → cancer!</div><button onclick="document.getElementById('stepNextBtn').disabled=false" style="padding:8px 20px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-family:Inter,sans-serif">Got it →</button>`:''}
+    </div>`;
+  }
+  r();
+}
+
+function initHallmarksGame() {
+  const zone = document.getElementById('gameZone'); if (!zone) return;
+  const hs = [
+    {n:'Sustained Proliferation',e:'📡',c:'#ef4444'},{n:'Evading Growth Suppression',e:'🚫',c:'#3b82f6'},
+    {n:'Resisting Cell Death',e:'💀',c:'#f59e0b'},{n:'Replicative Immortality',e:'♾️',c:'#10b981'},
+    {n:'Inducing Angiogenesis',e:'🩸',c:'#8b5cf6'},{n:'Invasion & Metastasis',e:'🌊',c:'#f87171'},
+    {n:'Immune Evasion',e:'🛡️',c:'#22d3ee'},{n:'Tumor Inflammation',e:'🔥',c:'#fb923c'},
+    {n:'Genome Instability',e:'💥',c:'#a78bfa'},{n:'Metabolic Reprogramming',e:'⚡',c:'#4ade80'},
+  ];
+  let rev = new Set();
+  window._revH = function(i) { rev.add(i); r(); };
+  function r() {
+    const done = rev.size === hs.length;
+    zone.innerHTML = `<div>
+      <div style="font-size:0.78rem;color:var(--text3);text-align:center;margin-bottom:0.75rem">Click each card to reveal a hallmark (${rev.size}/${hs.length} discovered)</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:0.75rem">
+        ${hs.map((h,i) => { const on=rev.has(i); return `<div onclick="${on?'':'window._revH('+i+')'}" style="cursor:${on?'default':'pointer'};border-radius:10px;border:1px solid ${on?h.c+'55':'var(--border2)'};background:${on?h.c+'12':'rgba(255,255,255,0.02)'};padding:7px 4px;text-align:center;min-height:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all 0.25s">${on?`<div style="font-size:1.1rem">${h.e}</div><div style="font-size:0.58rem;font-weight:700;color:${h.c};margin-top:4px;line-height:1.3">${h.n}</div>`:`<div style="font-size:1.3rem">❓</div>`}</div>`; }).join('')}
+      </div>
+      ${done?`<div style="text-align:center;padding:0.75rem;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:10px"><div style="font-weight:700;color:#10b981">🎉 All 10 Hallmarks Discovered!</div><button onclick="document.getElementById('stepNextBtn').disabled=false" style="margin-top:0.5rem;padding:7px 18px;background:var(--accent3);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-family:Inter,sans-serif">Continue →</button></div>`:''}
+    </div>`;
+  }
+  r();
+}
+
+function initCascadeGame() {
+  const zone = document.getElementById('gameZone'); if (!zone) return;
+  const nodes = [
+    {l:'Growth Factor (EGF)',c:'#10b981'},{l:'EGFR (Receptor Kinase)',c:'#00d4ff'},
+    {l:'RAS (KRAS / HRAS)',c:'#3b82f6'},{l:'RAF (BRAF / CRAF)',c:'#7c3aed'},
+    {l:'MEK 1/2',c:'#f59e0b'},{l:'ERK 1/2',c:'#ef4444'},{l:'→ Cell Proliferation',c:'#f87171'},
+  ];
+  let lit = 0;
+  window._cascade = function(i) { if (i===lit) { lit++; r(); } };
+  function r() {
+    zone.innerHTML = `<div>
+      <div style="font-size:0.82rem;color:var(--text2);text-align:center;margin-bottom:0.75rem">${lit===0?'Click Growth Factor to start the signal cascade':lit<nodes.length?'Click the next highlighted node →':'🎯 Signal reached the nucleus — cell proliferates!'}</div>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:3px">
+        ${nodes.map((n,i) => { const on=i<lit, nx=i===lit; return `<div style="display:flex;flex-direction:column;align-items:center"><div onclick="${nx?'window._cascade('+i+')':''}" style="cursor:${nx?'pointer':'default'};padding:9px 24px;border-radius:9px;border:2px solid ${on?n.c:nx?n.c+'66':'rgba(255,255,255,0.08)'};background:${on?n.c+'22':nx?n.c+'0d':'transparent'};color:${on||nx?n.c:'var(--text3)'};font-weight:700;font-size:0.84rem;min-width:210px;text-align:center;transition:all 0.3s;${nx?'animation:pulse 1.2s ease infinite':''}">${n.l}</div>${i<nodes.length-1?`<div style="color:${on?nodes[i+1].c:'rgba(255,255,255,0.1)'};margin:2px 0">↓</div>`:''}</div>`; }).join('')}
+      </div>
+      ${lit>=nodes.length?`<div style="text-align:center;margin-top:1rem"><button onclick="document.getElementById('stepNextBtn').disabled=false" style="padding:8px 20px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-family:Inter,sans-serif">Continue →</button></div>`:''}
+    </div>`;
+  }
+  r();
+}
+
+function initImmunoGame() {
+  const zone = document.getElementById('gameZone'); if (!zone) return;
+  let pembro = false;
+  window._immunoToggle = function(on) { pembro=on; r(); };
+  function r() {
+    zone.innerHTML = `<div>
+      <div style="display:flex;gap:10px;justify-content:center;margin-bottom:1.25rem">
+        <button onclick="window._immunoToggle(false)" style="padding:7px 18px;border-radius:8px;border:2px solid ${!pembro?'#ef4444':'var(--border2)'};background:${!pembro?'rgba(239,68,68,0.1)':'transparent'};color:${!pembro?'#ef4444':'var(--text2)'};font-weight:700;cursor:pointer;font-family:Inter,sans-serif">No Treatment</button>
+        <button onclick="window._immunoToggle(true)" style="padding:7px 18px;border-radius:8px;border:2px solid ${pembro?'#10b981':'var(--border2)'};background:${pembro?'rgba(16,185,129,0.1)':'transparent'};color:${pembro?'#10b981':'var(--text2)'};font-weight:700;cursor:pointer;font-family:Inter,sans-serif">+ Pembrolizumab</button>
+      </div>
+      <div style="display:flex;gap:2rem;justify-content:center;align-items:center;margin-bottom:1.25rem">
+        <div style="text-align:center"><div style="font-size:2.5rem">${pembro?'⚔️':'😴'}</div><div style="font-weight:700;color:${pembro?'#10b981':'#94a3b8'};font-size:0.85rem;margin-top:0.4rem">T Cell</div><div style="font-size:0.72rem;color:var(--text3)">${pembro?'ACTIVATED':'Suppressed'}</div></div>
+        <div style="text-align:center">${pembro?`<div style="color:#10b981;font-size:0.75rem;font-weight:700">PD-1 BLOCKED</div><div style="font-size:1.5rem">✂️</div>`:`<div style="color:#ef4444;font-size:0.75rem;font-weight:700">PD-L1 → PD-1</div><div style="font-size:1.5rem">🔗</div>`}</div>
+        <div style="text-align:center"><div style="font-size:2.5rem">${pembro?'💥':'😈'}</div><div style="font-weight:700;color:${pembro?'#ef4444':'#f87171'};font-size:0.85rem;margin-top:0.4rem">Tumor Cell</div><div style="font-size:0.72rem;color:var(--text3)">${pembro?'Being killed':'Evading immune'}</div></div>
+      </div>
+      <div style="padding:0.65rem 0.85rem;border-radius:8px;background:${pembro?'rgba(16,185,129,0.08)':'rgba(239,68,68,0.08)'};border:1px solid ${pembro?'rgba(16,185,129,0.2)':'rgba(239,68,68,0.2)'};font-size:0.82rem;color:${pembro?'#6ee7b7':'#fca5a5'};text-align:center;line-height:1.5">${pembro?'Pembrolizumab blocks PD-1 → T cell reactivated → tumor neoantigens recognized → immune killing':'Tumor PD-L1 binds T cell PD-1 → T cell exhausted/anergic → immune evasion → tumor grows'}</div>
+      <div style="text-align:center;margin-top:1rem"><button onclick="document.getElementById('stepNextBtn').disabled=false" style="padding:8px 20px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-family:Inter,sans-serif">Got it →</button></div>
+    </div>`;
+  }
+  r();
 }
 
 // ── LESSON DIAGRAMS ──
