@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Genome Explorer — GeneLens AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    :root {
+      --bg: #050a14; --bg2: #0a1628; --bg3: #0f1f3d;
+      --accent: #00d4ff; --accent2: #7c3aed; --accent3: #10b981;
+      --accent4: #f59e0b; --accent5: #ef4444;
+      --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+      --card: rgba(15,31,61,0.9); --border: rgba(0,212,255,0.15);
+      --border2: rgba(255,255,255,0.08);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html,body { height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); }
+    h1,h2,h3,h4 { font-family:'Space Grotesk',sans-serif; }
+
+    /* ── TOP BAR ── */
+    .topbar {
+      height:56px; display:flex; align-items:center; gap:1rem;
+      padding:0 1.25rem;
+      background:rgba(5,10,20,0.95); border-bottom:1px solid var(--border2);
+      position:relative; z-index:10; flex-shrink:0;
+    }
+    .logo-link { display:flex; align-items:center; gap:8px; text-decoration:none; color:var(--accent); font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:1.1rem; }
+    .logo-box { width:30px; height:30px; background:linear-gradient(135deg,var(--accent),var(--accent2)); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:0.9rem; }
+    .topbar-sep { width:1px; height:24px; background:var(--border2); }
+    .topbar-title { color:var(--text2); font-size:0.9rem; }
+    .search-wrap { flex:1; max-width:380px; position:relative; }
+    .search-input {
+      width:100%; padding:8px 12px 8px 36px;
+      background:rgba(255,255,255,0.05); border:1px solid var(--border2);
+      border-radius:8px; color:var(--text); font-size:0.88rem; font-family:'Inter',sans-serif;
+      outline:none; transition:border-color 0.2s;
+    }
+    .search-input:focus { border-color:var(--accent); }
+    .search-input::placeholder { color:var(--text3); }
+    .search-icon { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--text3); font-size:0.9rem; }
+    .search-results {
+      position:absolute; top:calc(100% + 6px); left:0; right:0;
+      background:var(--bg2); border:1px solid var(--border); border-radius:10px;
+      z-index:100; max-height:300px; overflow-y:auto;
+      display:none; box-shadow:0 8px 32px rgba(0,0,0,0.5);
+    }
+    .search-results.open { display:block; }
+    .search-result-item {
+      display:flex; align-items:center; gap:10px; padding:10px 14px;
+      cursor:pointer; transition:background 0.15s; border-bottom:1px solid var(--border2);
+    }
+    .search-result-item:last-child { border-bottom:none; }
+    .search-result-item:hover { background:rgba(0,212,255,0.05); }
+    .sri-name { font-weight:700; font-size:0.9rem; }
+    .sri-type { font-size:0.75rem; color:var(--text3); }
+    .sri-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .topbar-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+    .view-toggle { display:flex; gap:4px; }
+    .vt-btn {
+      padding:5px 12px; border-radius:6px; font-size:0.78rem; font-weight:600;
+      border:1px solid var(--border2); background:transparent; color:var(--text2);
+      cursor:pointer; transition:all 0.2s; font-family:'Inter',sans-serif;
+    }
+    .vt-btn.active { background:var(--accent); color:#000; border-color:var(--accent); }
+    .back-btn {
+      padding:6px 14px; border-radius:7px; font-size:0.8rem; font-weight:600;
+      background:transparent; border:1px solid var(--border2); color:var(--text2);
+      cursor:pointer; font-family:'Inter',sans-serif; text-decoration:none;
+      transition:all 0.2s;
+    }
+    .back-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+    /* ── LAYOUT ── */
+    .app { display:flex; height:calc(100vh - 56px); overflow:hidden; }
+
+    /* ── LEFT SIDEBAR ── */
+    .sidebar {
+      width:220px; flex-shrink:0;
+      background:var(--bg2); border-right:1px solid var(--border2);
+      display:flex; flex-direction:column; overflow:hidden;
+    }
+    .sidebar-section { padding:0.75rem 1rem 0.5rem; }
+    .sidebar-label { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:var(--text3); margin-bottom:0.5rem; }
+    .cancer-list { overflow-y:auto; flex:1; }
+    .cancer-item {
+      display:flex; align-items:center; gap:8px; padding:7px 1rem;
+      cursor:pointer; transition:background 0.15s; font-size:0.83rem;
+    }
+    .cancer-item:hover { background:rgba(255,255,255,0.04); }
+    .cancer-item.active { background:rgba(0,212,255,0.08); color:var(--accent); }
+    .cancer-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .cancer-name { flex:1; }
+    .cancer-count { font-size:0.72rem; color:var(--text3); }
+
+    /* ── MAIN PANEL ── */
+    .main { flex:1; overflow:hidden; display:flex; flex-direction:column; }
+
+    /* ── CHROMOSOME VIEW ── */
+    #chromosomeView { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+    .chr-header { padding:1rem 1.25rem 0.75rem; border-bottom:1px solid var(--border2); display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+    .chr-header h2 { font-size:1.05rem; font-weight:600; }
+    .chr-stats { display:flex; gap:1rem; margin-left:auto; }
+    .chr-stat { text-align:right; }
+    .chr-stat-val { font-size:1.1rem; font-weight:700; color:var(--accent); font-family:'Space Grotesk',sans-serif; }
+    .chr-stat-label { font-size:0.7rem; color:var(--text3); }
+    .chr-canvas-wrap { padding:1rem 1.25rem; overflow-y:auto; flex:1; }
+    #chrCanvas { display:block; width:100%; }
+
+    /* ── GENE DETAIL VIEW ── */
+    #geneDetailView { flex:1; display:none; flex-direction:column; overflow:hidden; }
+    .detail-header {
+      padding:1rem 1.25rem; border-bottom:1px solid var(--border2);
+      display:flex; align-items:flex-start; gap:1rem;
+    }
+    .detail-back {
+      background:none; border:1px solid var(--border2); color:var(--text2);
+      border-radius:7px; padding:5px 12px; cursor:pointer; font-size:0.8rem;
+      font-family:'Inter',sans-serif; transition:all 0.2s; flex-shrink:0; margin-top:2px;
+    }
+    .detail-back:hover { border-color:var(--accent); color:var(--accent); }
+    .detail-gene-name { font-size:1.8rem; font-weight:800; font-family:'Space Grotesk',sans-serif; }
+    .detail-badges { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+    .badge { padding:3px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; }
+    .detail-body { flex:1; overflow-y:auto; padding:1.25rem; display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .detail-card { background:var(--card); border:1px solid var(--border2); border-radius:12px; padding:1.1rem; }
+    .detail-card h3 { font-size:0.85rem; font-weight:600; color:var(--text2); margin-bottom:0.75rem; text-transform:uppercase; letter-spacing:0.05em; }
+    .detail-card.full { grid-column:1/-1; }
+    .info-row { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid var(--border2); font-size:0.85rem; }
+    .info-row:last-child { border-bottom:none; }
+    .info-key { color:var(--text3); }
+    .info-val { font-weight:500; color:var(--text); text-align:right; max-width:60%; }
+    .cancer-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:0.5rem; }
+    .cancer-tag { padding:3px 9px; border-radius:5px; font-size:0.75rem; font-weight:600; background:rgba(0,212,255,0.1); color:var(--accent); border:1px solid rgba(0,212,255,0.2); }
+    .drug-tag { padding:3px 9px; border-radius:5px; font-size:0.75rem; font-weight:600; background:rgba(16,185,129,0.1); color:var(--accent3); border:1px solid rgba(16,185,129,0.2); }
+    .pathway-diagram { margin-top:0.5rem; }
+    .pathway-step {
+      display:flex; align-items:center; gap:8px; margin-bottom:8px;
+    }
+    .pstep-box {
+      padding:6px 12px; border-radius:7px; font-size:0.78rem; font-weight:600;
+      border:1px solid; flex-shrink:0;
+    }
+    .pstep-arrow { color:var(--text3); font-size:0.9rem; }
+    .pstep-label { font-size:0.75rem; color:var(--text3); }
+    .mut-bar-wrap { margin-top:4px; }
+    .mut-row { display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:0.8rem; }
+    .mut-label { width:70px; color:var(--text3); flex-shrink:0; font-size:0.75rem; }
+    .mut-bar-bg { flex:1; height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; }
+    .mut-bar { height:100%; border-radius:4px; }
+    .mut-pct { width:30px; text-align:right; font-weight:600; font-size:0.78rem; }
+
+    /* ── PATHWAY VIEW ── */
+    #pathwayView { flex:1; display:none; flex-direction:column; overflow:hidden; }
+    .pathway-header { padding:1rem 1.25rem; border-bottom:1px solid var(--border2); display:flex; align-items:center; gap:1rem; flex-wrap:wrap; }
+    .pathway-header h2 { font-size:1.05rem; font-weight:600; }
+    .pathway-selector { display:flex; gap:6px; flex-wrap:wrap; margin-left:auto; }
+    .pathway-btn {
+      padding:4px 12px; border-radius:6px; font-size:0.75rem; font-weight:600;
+      border:1px solid var(--border2); background:transparent; color:var(--text2);
+      cursor:pointer; transition:all 0.2s; font-family:'Inter',sans-serif;
+    }
+    .pathway-btn.active { background:var(--accent2); color:#fff; border-color:var(--accent2); }
+    #pathwayCanvas { flex:1; display:block; }
+
+    /* ── RIGHT PANEL ── */
+    .right-panel {
+      width:280px; flex-shrink:0;
+      background:var(--bg2); border-left:1px solid var(--border2);
+      display:flex; flex-direction:column; overflow:hidden;
+    }
+    .rp-section { padding:0.75rem 1rem; border-bottom:1px solid var(--border2); }
+    .rp-section:last-child { border-bottom:none; }
+    .rp-label { font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:1.5px; color:var(--text3); margin-bottom:0.6rem; }
+    .rp-gene-card {
+      background:rgba(0,212,255,0.04); border:1px solid var(--border2);
+      border-radius:8px; padding:0.7rem; margin-bottom:6px; cursor:pointer;
+      transition:all 0.2s;
+    }
+    .rp-gene-card:hover { border-color:var(--accent); background:rgba(0,212,255,0.08); }
+    .rp-gene-name { font-weight:700; font-size:0.88rem; }
+    .rp-gene-type { font-size:0.72rem; color:var(--text3); }
+    .rp-gene-bar { height:3px; border-radius:2px; margin-top:5px; }
+    .compare-wrap { flex:1; overflow-y:auto; }
+    .compare-slot {
+      display:flex; align-items:center; gap:8px; padding:6px 1rem;
+      border-bottom:1px solid var(--border2); font-size:0.82rem; cursor:pointer;
+      transition:background 0.15s;
+    }
+    .compare-slot:hover { background:rgba(255,255,255,0.03); }
+    .compare-slot-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .compare-slot-name { flex:1; font-weight:500; }
+    .compare-slot-pct { font-size:0.75rem; color:var(--text3); }
+
+    /* ── MINI CHART ── */
+    .mini-chart-wrap { padding:0.75rem 1rem; }
+
+    /* scrollbars */
+    ::-webkit-scrollbar { width:4px; height:4px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:2px; }
+
+    /* ── INTRO OVERLAY ── */
+    .intro-overlay { position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.8);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:1rem; }
+    .intro-card { background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:2rem;max-width:480px;width:100%;animation:slideUp 0.5s ease; }
+    @keyframes slideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+    .intro-badge { display:inline-flex;align-items:center;gap:6px;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);border-radius:20px;padding:4px 14px;font-size:0.75rem;font-weight:700;color:var(--accent);margin-bottom:1rem; }
+    .intro-card h2 { font-size:1.4rem;font-weight:700;margin-bottom:0.4rem;color:var(--text); }
+    .intro-sub { font-size:0.9rem;color:var(--text2);margin-bottom:1.5rem;line-height:1.6; }
+    .intro-steps { list-style:none;margin-bottom:1.5rem; }
+    .intro-steps li { display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--border2);font-size:0.88rem;color:var(--text2);line-height:1.5; }
+    .intro-steps li:last-child { border-bottom:none; }
+    .intro-step-icon { font-size:1.2rem;flex-shrink:0; }
+    .intro-steps strong { color:var(--text);font-weight:600;display:block;margin-bottom:2px; }
+    .intro-btn { width:100%;padding:0.9rem;background:linear-gradient(135deg,var(--accent),#0099cc);color:#000;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-size:1rem;font-family:'Inter',sans-serif;transition:opacity 0.2s; }
+    .intro-btn:hover { opacity:0.85; }
+    .view-tip { position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:0.65rem 1.25rem;font-size:0.85rem;color:var(--text2);z-index:100;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap; }
+    .view-tip.show { opacity:1; }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <a class="logo-link" href="index.html">
+    <div class="logo-box">🔬</div>
+    GeneLens AI
+  </a>
+  <div class="topbar-sep"></div>
+  <span class="topbar-title">Genome Explorer</span>
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input class="search-input" id="searchInput" type="text" placeholder="Search any gene — TP53, KRAS, BRCA1…" autocomplete="off" />
+    <div class="search-results" id="searchResults"></div>
+  </div>
+  <div class="topbar-right">
+    <div class="view-toggle">
+      <button class="vt-btn active" id="btnChr" onclick="setView('chromosome')">🧬 Chromosomes</button>
+      <button class="vt-btn" id="btnPath" onclick="setView('pathway')">⚙️ Pathways</button>
+    </div>
+    <a class="back-btn" href="index.html">← Home</a>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- LEFT SIDEBAR: cancer types -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Cancer Type</div>
+    </div>
+    <div class="cancer-list" id="cancerList"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- CHROMOSOME VIEW -->
+    <div id="chromosomeView">
+      <div class="chr-header">
+        <h2 id="chrTitle">Human Cancer Genome — All Chromosomes</h2>
+        <div class="chr-stats">
+          <div class="chr-stat"><div class="chr-stat-val" id="statGenes">847</div><div class="chr-stat-label">Cancer Genes</div></div>
+          <div class="chr-stat"><div class="chr-stat-val" id="statMut">50K+</div><div class="chr-stat-label">Mutations</div></div>
+          <div class="chr-stat"><div class="chr-stat-val" id="statSamples">11,312</div><div class="chr-stat-label">TCGA Samples</div></div>
+        </div>
+      </div>
+      <div class="chr-canvas-wrap">
+        <canvas id="chrCanvas" height="480"></canvas>
+      </div>
+    </div>
+
+    <!-- GENE DETAIL VIEW -->
+    <div id="geneDetailView">
+      <div class="detail-header">
+        <button class="detail-back" onclick="backToChromosome()">← Back</button>
+        <div>
+          <div class="detail-gene-name" id="detailGeneName">TP53</div>
+          <div class="detail-badges" id="detailBadges"></div>
+        </div>
+      </div>
+      <div class="detail-body" id="detailBody"></div>
+    </div>
+
+    <!-- PATHWAY VIEW -->
+    <div id="pathwayView">
+      <div class="pathway-header">
+        <h2>Cancer Signaling Pathways</h2>
+        <div class="pathway-selector">
+          <button class="pathway-btn active" onclick="setPathway('ras',this)">RAS/MAPK</button>
+          <button class="pathway-btn" onclick="setPathway('pi3k',this)">PI3K/AKT</button>
+          <button class="pathway-btn" onclick="setPathway('p53',this)">p53 / DNA Damage</button>
+          <button class="pathway-btn" onclick="setPathway('wnt',this)">Wnt / β-catenin</button>
+          <button class="pathway-btn" onclick="setPathway('cell',this)">Cell Cycle</button>
+        </div>
+      </div>
+      <canvas id="pathwayCanvas"></canvas>
+    </div>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="right-panel">
+    <div class="rp-section">
+      <div class="rp-label">🔥 Top Mutated Genes</div>
+      <div id="rpTopGenes"></div>
+    </div>
+    <div class="rp-section" style="flex:1;overflow:hidden;display:flex;flex-direction:column">
+      <div class="rp-label">📊 All Genes</div>
+      <div class="compare-wrap" id="rpGeneList"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── POLYFILL: roundRect for older browsers ──
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+    r = Math.min(r||0, Math.abs(w)/2, Math.abs(h)/2);
+    this.moveTo(x+r, y);
+    this.arcTo(x+w, y, x+w, y+h, r);
+    this.arcTo(x+w, y+h, x, y+h, r);
+    this.arcTo(x, y+h, x, y, r);
+    this.arcTo(x, y, x+w, y, r);
+    this.closePath();
+  };
+}
+
+// ── DATA ──
+const CANCERS = [
+  { id:'all', name:'All Cancers', color:'#00d4ff', count:847 },
+  { id:'brca', name:'Breast (BRCA)', color:'#f472b6', count:189 },
+  { id:'luad', name:'Lung Adeno (LUAD)', color:'#60a5fa', count:230 },
+  { id:'lusc', name:'Lung Squamous', color:'#93c5fd', count:178 },
+  { id:'coad', name:'Colorectal (COAD)', color:'#34d399', count:214 },
+  { id:'gbm',  name:'Glioblastoma (GBM)', color:'#a78bfa', count:156 },
+  { id:'prad', name:'Prostate (PRAD)', color:'#fb923c', count:112 },
+  { id:'skcm', name:'Melanoma (SKCM)', color:'#fbbf24', count:167 },
+  { id:'ov',   name:'Ovarian (OV)', color:'#f87171', count:98 },
+  { id:'paad', name:'Pancreatic (PAAD)', color:'#4ade80', count:88 },
+  { id:'blca', name:'Bladder (BLCA)', color:'#22d3ee', count:127 },
+  { id:'hnsc', name:'Head & Neck (HNSC)', color:'#e879f9', count:145 },
+  { id:'stad', name:'Stomach (STAD)', color:'#fb7185', count:134 },
+  { id:'ucec', name:'Uterine (UCEC)', color:'#fde68a', count:119 },
+  { id:'thca', name:'Thyroid (THCA)', color:'#6ee7b7', count:76 },
+  { id:'lihc', name:'Liver (LIHC)', color:'#fca5a5', count:91 },
+  { id:'kirc', name:'Kidney Clear (KIRC)', color:'#67e8f9', count:83 },
+  { id:'cesc', name:'Cervical (CESC)', color:'#f9a8d4', count:72 },
+  { id:'aml',  name:'Leukemia (AML)', color:'#86efac', count:95 },
+  { id:'dlbc', name:'DLBCL Lymphoma', color:'#c4b5fd', count:68 },
+  { id:'meso', name:'Mesothelioma', color:'#94a3b8', count:52 },
+  { id:'acc',  name:'Adrenocortical', color:'#fcd34d', count:45 },
+  { id:'sclc', name:'Small Cell Lung', color:'#f0abfc', count:163 },
+  { id:'nbl',  name:'Neuroblastoma', color:'#7dd3fc', count:57 },
+];
+
+const GENES = [
+  // chr1
+  { id:'TP53', chr:17, pos:0.35, type:'suppressor', color:'#3b82f6', mutRate:35, fullName:'Tumor protein p53', cancers:['brca','luad','coad','gbm','blca','hnsc','stad','ov'], pathway:'p53/DNA Damage', function:'Transcription factor; triggers apoptosis and cell cycle arrest in response to DNA damage', drugs:['APR-246 (APG-115)','Nutlin-3a','PRIMA-1'], location:'17p13.1', mutations:[{type:'Missense',pct:72},{type:'Nonsense',pct:14},{type:'Frameshift',pct:8},{type:'Splice',pct:6}], desc:'TP53 encodes p53, the master guardian of the genome. When DNA is damaged, p53 either pauses the cell cycle to allow repair or triggers programmed cell death (apoptosis). Mutated in >50% of all cancers, making it the most commonly altered gene in human cancer. Loss of p53 function allows cells with damaged DNA to survive and continue proliferating.', mechanism:'DNA damage → ATM/ATR kinases → p53 phosphorylation → transcriptional activation of p21 (cell cycle arrest) or BAX/PUMA (apoptosis)' },
+  { id:'KRAS', chr:12, pos:0.1, type:'oncogene', color:'#ef4444', mutRate:28, fullName:'Kirsten RAS proto-oncogene', cancers:['luad','coad','paad','stad'], pathway:'RAS/MAPK', function:'Small GTPase; cycles between active (GTP-bound) and inactive (GDP-bound) states to control proliferation', drugs:['Sotorasib (KRAS G12C)','Adagrasib (KRAS G12C)','AMG-510'], location:'12p12.1', mutations:[{type:'G12D',pct:36},{type:'G12V',pct:22},{type:'G12C',pct:14},{type:'G13D',pct:11}], desc:'KRAS is a molecular switch that normally turns cell proliferation signals on and off. Oncogenic mutations (most commonly at codons 12 or 13) lock KRAS in its active GTP-bound state, constitutively activating downstream proliferation pathways (RAF/MEK/ERK and PI3K/AKT). Among the most common and historically undruggable cancer drivers — until KRAS G12C inhibitors (Sotorasib, Adagrasib) were approved in 2021.', mechanism:'Mutant KRAS (GTP-locked) → RAF → MEK → ERK → transcription of proliferation genes (cyclin D1, MYC)' },
+  { id:'PIK3CA', chr:3, pos:0.72, type:'oncogene', color:'#ef4444', mutRate:22, fullName:'PI3K catalytic subunit alpha', cancers:['brca','coad','ucec','hnsc'], pathway:'PI3K/AKT', function:'Kinase (catalytic subunit of PI3Kα); phosphorylates PIP2 to PIP3, activating AKT', drugs:['Alpelisib (BYL719)','Copanlisib','Idelalisib'], location:'3q26.32', mutations:[{type:'H1047R',pct:40},{type:'E545K',pct:18},{type:'E542K',pct:12},{type:'H1047L',pct:8}], desc:'PIK3CA encodes the catalytic p110α subunit of phosphatidylinositol 3-kinase (PI3K). Activating mutations cluster in the helical domain (E542K, E545K) and kinase domain (H1047R/L). These mutations increase PIP3 production, hyperactivating AKT and mTOR to drive cell growth, survival, and metabolism. Alpelisib (targeting PIK3CA-mutant HR+/HER2- breast cancer) was the first PI3K inhibitor approved for solid tumors.', mechanism:'Mutant PI3Kα → PIP3↑ → AKT phosphorylation → mTOR activation → protein synthesis, cell growth, survival' },
+  { id:'BRCA1', chr:17, pos:0.62, type:'suppressor', color:'#3b82f6', mutRate:15, fullName:'Breast cancer gene 1', cancers:['brca','ov'], pathway:'DNA Repair (HR)', function:'DNA repair scaffold; essential for homologous recombination of double-strand breaks', drugs:['Olaparib (PARP inhibitor)','Rucaparib','Niraparib','Talazoparib'], location:'17q21.31', mutations:[{type:'Frameshift',pct:62},{type:'Nonsense',pct:24},{type:'Missense',pct:9},{type:'Splice',pct:5}], desc:'BRCA1 encodes a large multifunctional protein critical for maintaining genome stability. It forms a complex with BARD1, RAD51, and other repair factors to mediate homologous recombination (HR) repair of double-strand DNA breaks. Germline BRCA1 mutations confer 50-72% lifetime risk of breast cancer and 44-46% risk of ovarian cancer. Tumors with BRCA1/2 mutations are exquisitely sensitive to PARP inhibitors (synthetic lethality).', mechanism:'DSB occurs → BRCA1 recruits repair complex (PALB2/BRCA2/RAD51) → strand invasion → HR repair. Loss of BRCA1 → error-prone NHEJ → genomic instability' },
+  { id:'BRCA2', chr:13, pos:0.42, type:'suppressor', color:'#3b82f6', mutRate:12, fullName:'Breast cancer gene 2', cancers:['brca','ov','paad'], pathway:'DNA Repair (HR)', function:'RAD51 chaperone; directly loads RAD51 onto ssDNA for strand invasion during HR', drugs:['Olaparib','Rucaparib','Niraparib','Veliparib'], location:'13q12.3', mutations:[{type:'Frameshift',pct:55},{type:'Nonsense',pct:28},{type:'Splice',pct:12},{type:'Missense',pct:5}], desc:'BRCA2 works in concert with BRCA1 to repair double-strand DNA breaks via homologous recombination. Its key function is loading RAD51 onto single-stranded DNA at the break site, enabling strand invasion and error-free repair. Germline mutations carry 45-65% lifetime breast cancer risk. Unlike BRCA1, BRCA2 is also a significant driver of pancreatic cancer (~7% of cases).', mechanism:'BRCA2 binds RAD51 via BRC repeats → facilitates RAD51 filament formation → catalyzes homology search and strand exchange' },
+  { id:'EGFR', chr:7, pos:0.52, type:'kinase', color:'#f59e0b', mutRate:18, fullName:'Epidermal growth factor receptor', cancers:['luad','gbm'], pathway:'RAS/MAPK, PI3K/AKT', function:'Receptor tyrosine kinase; activated by EGF binding to stimulate cell growth and differentiation', drugs:['Erlotinib','Gefitinib','Osimertinib (T790M)','Afatinib','Cetuximab'], location:'7p11.2', mutations:[{type:'L858R',pct:38},{type:'Exon 19 del',pct:44},{type:'T790M (resist)',pct:12},{type:'Amplification',pct:6}], desc:'EGFR is a transmembrane receptor tyrosine kinase activated by epidermal growth factor. Activating mutations in the kinase domain (exon 19 deletions, L858R point mutation) hyperactivate downstream RAS/MAPK and PI3K/AKT signaling. These mutations are primary drivers in ~15% of Western and ~50% of East Asian non-small cell lung cancer patients. Osimertinib (3rd-gen TKI) overcomes the acquired resistance mutation T790M.', mechanism:'EGF → EGFR dimerization → kinase autophosphorylation → RAS/MAPK + PI3K/AKT activation → cell proliferation/survival' },
+  { id:'MYC', chr:8, pos:0.13, type:'oncogene', color:'#ef4444', mutRate:20, fullName:'MYC proto-oncogene', cancers:['dlbc','brca','luad','aml'], pathway:'Cell cycle, metabolism', function:'Transcription factor that drives expression of hundreds of genes controlling cell growth and metabolism', drugs:['OmoMyc (BET bromodomain)','JQ1','BRD4 inhibitors'], location:'8q24.21', mutations:[{type:'Amplification',pct:68},{type:'Translocation',pct:24},{type:'Missense',pct:8},{type:'Overexpression',pct:100}], desc:'MYC is one of the most frequently activated oncogenes across all cancers. Rather than point mutations, MYC is typically activated by gene amplification or chromosomal translocation (notably in Burkitt lymphoma: t(8;14) with IgH). As a transcription factor, MYC drives expression of ~15% of all genes, promoting cell cycle entry, ribosome biogenesis, metabolic reprogramming, and blocking differentiation.', mechanism:'Amplified MYC → E-box binding (with MAX) → transcription of CDK4, Cyclin D, metabolic genes → accelerated S-phase entry' },
+  { id:'PTEN', chr:10, pos:0.89, type:'suppressor', color:'#3b82f6', mutRate:17, fullName:'Phosphatase and tensin homolog', cancers:['gbm','brca','prad'], pathway:'PI3K/AKT', function:'Lipid phosphatase; converts PIP3 back to PIP2, opposing PI3K and restraining AKT activity', drugs:['None direct; mTOR inhibitors (Everolimus)'], location:'10q23.31', mutations:[{type:'Frameshift',pct:38},{type:'Missense',pct:32},{type:'Nonsense',pct:18},{type:'Deletion',pct:12}], desc:'PTEN is a dual-specificity phosphatase that dephosphorylates PIP3 to PIP2, directly antagonizing PI3K activity. It is the primary negative regulator of the PI3K/AKT/mTOR pathway. Loss of PTEN function — through deletion, mutation, or epigenetic silencing — leads to constitutive AKT activation, promoting cell survival, growth, and proliferation. PTEN is the second most commonly lost tumor suppressor after TP53.', mechanism:'Normal: PTEN→PIP3 to PIP2→AKT inactive. Loss: PIP3 accumulates→AKT phosphorylated→mTOR activated→cell grows' },
+  { id:'BRAF', chr:7, pos:0.38, type:'kinase', color:'#f59e0b', mutRate:14, fullName:'B-Raf proto-oncogene', cancers:['skcm','thca','coad'], pathway:'RAS/MAPK', function:'Serine/threonine kinase in the MAPK cascade; phosphorylates and activates MEK1/2', drugs:['Vemurafenib (V600E)','Dabrafenib','Trametinib (combo)','Encorafenib'], location:'7q34', mutations:[{type:'V600E',pct:80},{type:'V600K',pct:8},{type:'K601E',pct:3},{type:'Other',pct:9}], desc:'BRAF is a serine/threonine kinase in the MAPK signaling cascade. The V600E mutation (GTG→GAG substitution) substitutes glutamic acid for valine, locking BRAF in an active conformation that constitutively drives MEK/ERK signaling without upstream RAS activation. BRAF V600E is present in ~50% of melanomas, ~60% of thyroid papillary carcinomas, and ~10% of colorectal cancers. Vemurafenib was the first BRAF inhibitor approved, dramatically improving melanoma outcomes.', mechanism:'V600E BRAF (constitutively active) → MEK1/2 phosphorylation → ERK1/2 → nuclear translocation → gene expression driving proliferation' },
+  { id:'APC', chr:5, pos:0.22, type:'suppressor', color:'#3b82f6', mutRate:70, fullName:'Adenomatous polyposis coli', cancers:['coad'], pathway:'Wnt/β-catenin', function:'Scaffold protein that promotes β-catenin degradation; master gatekeeper of the Wnt pathway', drugs:['None direct; pathway inhibitors in trials'], location:'5q22.2', mutations:[{type:'Frameshift',pct:44},{type:'Nonsense',pct:38},{type:'Missense',pct:12},{type:'Splice',pct:6}], desc:'APC is the defining tumor suppressor in colorectal cancer — mutated in over 80% of sporadic cases and in familial adenomatous polyposis (FAP). APC normally forms a destruction complex with AXIN and GSK3β to phosphorylate β-catenin, targeting it for proteasomal degradation. APC mutations allow β-catenin to accumulate, translocate to the nucleus, and activate pro-growth Wnt target genes (MYC, cyclin D1). APC mutation is typically the first "hit" in colorectal tumorigenesis.', mechanism:'APC lost → destruction complex fails → β-catenin accumulates → TCF/LEF transcription → MYC, Cyclin D1, VEGF → tumor initiation' },
+  { id:'RB1', chr:13, pos:0.14, type:'suppressor', color:'#3b82f6', mutRate:13, fullName:'Retinoblastoma protein 1', cancers:['blca','lusc','sclc'], pathway:'Cell Cycle (RB/E2F)', function:'Cell cycle master brake; sequesters E2F transcription factors to prevent S-phase entry', drugs:['CDK4/6 inhibitors (Palbociclib, Ribociclib, Abemaciclib)'], location:'13q14.2', mutations:[{type:'Deletion',pct:52},{type:'Frameshift',pct:22},{type:'Nonsense',pct:18},{type:'Missense',pct:8}], desc:'RB1 encodes pRb, the first tumor suppressor gene characterized. pRb controls the critical G1/S checkpoint by binding and inactivating E2F transcription factors needed for DNA synthesis genes. Cyclin D/CDK4/6 complexes phosphorylate pRb, releasing E2F and allowing S-phase entry. Loss of pRb (or hyperactivation of CDK4/6 via cyclin D amplification) bypasses this checkpoint. CDK4/6 inhibitors (Palbociclib) restore the G1 brake in cyclin D-amplified cancers even when pRb is present.', mechanism:'Cyclin D-CDK4/6 phosphorylates pRb → E2F released → transcription of S-phase genes (cyclin E, PCNA, DNA polymerase)' },
+  { id:'EGFR2', chr:17, pos:0.78, type:'kinase', color:'#f59e0b', fullName:'HER2 / ErbB2', mutRate:16, cancers:['brca','stad','blca'], pathway:'RAS/MAPK, PI3K/AKT', function:'HER2 receptor tyrosine kinase; preferentially heterodimerizes with other EGFR family members', drugs:['Trastuzumab','Pertuzumab','T-DM1','Lapatinib','Tucatinib','T-DXd'], location:'17q12', mutations:[{type:'Amplification',pct:72},{type:'S310F/Y',pct:12},{type:'L755S',pct:8},{type:'V777L',pct:8}], desc:'HER2 (ERBB2) is amplified or overexpressed in ~20% of breast cancers and ~15% of gastric/gastroesophageal junction cancers. HER2 has no known ligand and preferentially forms active heterodimers with other ErbB family members, potently activating downstream signaling. Anti-HER2 therapies (trastuzumab, pertuzumab) have transformed HER2+ breast cancer outcomes. Trastuzumab deruxtecan (T-DXd) is an antibody-drug conjugate showing efficacy even at HER2-low expression.', mechanism:'HER2 amplification → constitutive HER2/HER3 dimerization → PI3K/AKT + RAS/MAPK hyperactivation → aggressive tumor growth' },
+  { id:'IDH1', chr:2, pos:0.55, type:'oncogene', color:'#ef4444', mutRate:11, fullName:'Isocitrate dehydrogenase 1', cancers:['gbm','aml','coad'], pathway:'Metabolism / Epigenetics', function:'Metabolic enzyme; oncogenic R132 mutation produces 2-hydroxyglutarate (2-HG), an oncometabolite', drugs:['Ivosidenib (IDH1)','Olutasidenib','Enasidenib (IDH2)'], location:'2q33.3', mutations:[{type:'R132H',pct:74},{type:'R132C',pct:12},{type:'R132S',pct:7},{type:'R132G',pct:4}], desc:'IDH1 mutations produce a neomorphic enzymatic activity — instead of converting isocitrate to α-ketoglutarate, mutant IDH1 produces 2-hydroxyglutarate (2-HG). 2-HG is an "oncometabolite" that competitively inhibits α-KG-dependent dioxygenases, including TET2 (DNA demethylation) and the JmjC histone demethylases, leading to the CpG island methylator phenotype (CIMP). IDH1 mutations are early events in gliomas and AML, and IDH-mutant gliomas have markedly better prognosis than IDH-wild-type glioblastoma.', mechanism:'R132H IDH1 → 2-HG production → TET2/JHDM inhibition → hypermethylation (CIMP) → gene silencing → differentiation block' },
+  { id:'MLH1', chr:3, pos:0.37, type:'suppressor', color:'#8b5cf6', mutRate:9, fullName:'MutL homolog 1', cancers:['coad','ucec','stad'], pathway:'DNA Mismatch Repair', function:'DNA mismatch repair; MLH1/PMS2 heterodimer recognizes and coordinates excision of mismatched bases', drugs:['Pembrolizumab (MSI-H)','Nivolumab','Dostarlimab'], location:'3p22.2', mutations:[{type:'Frameshift',pct:35},{type:'Missense',pct:30},{type:'Promoter methylation',pct:25},{type:'Nonsense',pct:10}], desc:'MLH1 is a mismatch repair (MMR) gene critical for correcting errors introduced during DNA replication. MLH1 loss (via germline mutation in Lynch syndrome, or somatic promoter hypermethylation) causes microsatellite instability (MSI-H) — accumulation of insertion/deletion errors at repetitive sequences throughout the genome. MSI-H tumors have >10 mutations per megabase and high neoantigen load, making them exquisitely sensitive to immune checkpoint inhibitors. Dostarlimab achieved 100% response rates in dMMR rectal cancer.', mechanism:'MMR loss → replication errors persist → microsatellite instability → hundreds of frameshift neoantigens → immunogenic tumor' },
+  { id:'ALK', chr:2, pos:0.18, type:'kinase', color:'#f59e0b', mutRate:5, fullName:'Anaplastic lymphoma kinase', cancers:['luad','alcl'], pathway:'JAK/STAT, RAS/MAPK', function:'Receptor tyrosine kinase; EML4-ALK fusion creates constitutively active kinase in lung cancer', drugs:['Crizotinib','Alectinib','Brigatinib','Lorlatinib'], location:'2p23.2', mutations:[{type:'EML4-ALK fusion',pct:82},{type:'Amplification',pct:10},{type:'F1174L',pct:5},{type:'Other fusion',pct:3}], desc:'ALK (anaplastic lymphoma kinase) is activated in ~5% of non-small cell lung adenocarcinomas by chromosomal inversion creating the EML4-ALK fusion gene. This fusion causes constitutive kinase activity, driving cell proliferation and survival. ALK-positive NSCLC patients respond dramatically to ALK TKIs — Lorlatinib (3rd gen) overcomes multiple resistance mutations and CNS penetrance. ALK-positive patients are typically younger, never-smokers, and have substantially better outcomes than KRAS-mutant patients.', mechanism:'Chromosomal inversion → EML4-ALK fusion → constitutive dimerization/activation → JAK/STAT + RAS/MAPK + PI3K/AKT' },
+  { id:'CDKN2A', chr:9, pos:0.22, type:'suppressor', color:'#3b82f6', mutRate:24, fullName:'Cyclin dependent kinase inhibitor 2A', cancers:['skcm','paad','lusc','blca'], pathway:'Cell Cycle', function:'Encodes p16INK4a (CDK4/6 inhibitor) and p14ARF (MDM2 inhibitor) from same locus via alternate reading frames', drugs:['CDK4/6 inhibitors (Palbociclib) in RB-intact tumors'], location:'9p21.3', mutations:[{type:'Deletion (homoz.)',pct:55},{type:'Promoter methyl.',pct:25},{type:'Missense',pct:12},{type:'Nonsense',pct:8}], desc:'CDKN2A is remarkable for encoding two entirely different tumor suppressors from a single genomic locus via alternate reading frames: p16INK4a (inhibits CDK4/6, maintaining pRb in active form) and p14ARF (inhibits MDM2, stabilizing p53). Loss of CDKN2A simultaneously disables both the RB and p53 pathways — releasing both the cell cycle brake (pRb) and the genome guardian (p53). It is among the most commonly deleted loci in human cancer, particularly in melanoma and pancreatic cancer.', mechanism:'p16 lost → CDK4/6 uninhibited → pRb phosphorylated → E2F free → S-phase. p14ARF lost → MDM2 unstable → p53 degraded → no apoptosis checkpoint' },
+  { id:'VEGFA', chr:6, pos:0.44, type:'oncogene', color:'#ef4444', mutRate:8, fullName:'Vascular endothelial growth factor A', cancers:['brca','kirc','coad','gbm'], pathway:'Angiogenesis', function:'Promotes tumor angiogenesis; binds VEGFR1/2 on endothelial cells to drive blood vessel growth', drugs:['Bevacizumab','Sunitinib','Sorafenib','Axitinib','Pazopanib'], location:'6p21.1', mutations:[{type:'Amplification',pct:45},{type:'Overexpression',pct:55}], desc:'VEGFA is the master regulator of tumor angiogenesis. Solid tumors stimulate VEGFA secretion to induce formation of new blood vessels (angiogenesis), enabling oxygen and nutrient supply beyond the diffusion limit (~200 µm). VEGFA binds VEGFR2 on endothelial cells, driving proliferation, migration, and tube formation. Bevacizumab (anti-VEGF antibody) was the first FDA-approved anti-angiogenic agent. VEGFR TKIs (sunitinib, sorafenib) are mainstay treatments for kidney cancer.', mechanism:'Hypoxia → HIF-1α → VEGFA transcription → VEGFR2 activation on endothelium → endothelial proliferation → neovascularization' },
+  { id:'MET', chr:7, pos:0.65, type:'kinase', color:'#f59e0b', mutRate:6, fullName:'MET proto-oncogene', cancers:['luad','paad','kirc','stad'], pathway:'RAS/MAPK, PI3K/AKT', function:'Receptor tyrosine kinase for hepatocyte growth factor (HGF); drives proliferation, survival, and invasiveness', drugs:['Crizotinib (MET amp)','Capmatinib','Tepotinib','Cabozantinib'], location:'7q31.2', mutations:[{type:'Amplification',pct:48},{type:'Exon 14 skip',pct:30},{type:'Y1253D',pct:12},{type:'Overexpression',pct:10}], desc:'MET encodes the hepatocyte growth factor receptor, a key driver of the "invasive growth" program — cell scattering, proliferation, survival, and angiogenesis. MET exon 14 skipping mutations (loss of the regulatory juxtamembrane domain) result in prolonged MET activation. MET amplification is a primary driver in ~3% of NSCLC and a common resistance mechanism to EGFR TKIs. Capmatinib and Tepotinib are FDA-approved for MET exon 14-altered NSCLC.', mechanism:'HGF → MET dimerization → kinase autophosphorylation → GRB2/GAB1/SHC adapters → RAS/MAPK + PI3K/AKT + STAT3' },
+  { id:'NTRK1', chr:1, pos:0.76, type:'kinase', color:'#f59e0b', mutRate:1, fullName:'Neurotrophic tyrosine kinase receptor 1', cancers:['crc','thca','luad','skcm'], pathway:'RAS/MAPK, PI3K/AKT', function:'Receptor tyrosine kinase for NGF; NTRK fusions activate kinase constitutively across cancer types', drugs:['Larotrectinib','Entrectinib'], location:'1q23.1', mutations:[{type:'Fusion (ETV6)',pct:55},{type:'Fusion (other)',pct:35},{type:'Amplification',pct:10}], desc:'NTRK1/2/3 fusions are rare but highly actionable oncogenic drivers found across >20 cancer types. The kinase domain is constitutively activated when fused to various partner genes (e.g., ETV6-NTRK3 in secretory carcinoma). Larotrectinib and Entrectinib are FDA-approved pan-TRK inhibitors with tumor-agnostic indications — meaning approval is based on the molecular alteration rather than cancer type — among the first such approvals in oncology history. Overall response rates exceed 75%.', mechanism:'NTRK fusion → constitutive kinase → RAS/MAPK + PI3K/AKT + PLCγ → proliferation, survival, invasion' },
+  { id:'FGFR3', chr:4, pos:0.48, type:'kinase', color:'#f59e0b', mutRate:12, fullName:'Fibroblast growth factor receptor 3', cancers:['blca','myeloma'], pathway:'RAS/MAPK, PI3K/AKT', function:'Receptor tyrosine kinase; activated by FGFs to control cell proliferation and differentiation', drugs:['Erdafitinib','Pemigatinib','Infigratinib'], location:'4p16.3', mutations:[{type:'R248C',pct:28},{type:'S249C',pct:42},{type:'Y375C',pct:12},{type:'Translocation',pct:8}], desc:'FGFR3 is mutated or fused in ~15% of bladder cancers (most common in low-grade tumors) and translocated in multiple myeloma (t(4;14) with IgH, overexpressing FGFR3). Mutations cluster in the extracellular and transmembrane domains, causing ligand-independent dimerization and activation. Erdafitinib (pan-FGFR inhibitor) is FDA-approved for FGFR3-altered metastatic bladder cancer, demonstrating the targetability of this pathway.', mechanism:'Mutant FGFR3 → constitutive dimerization → STAT3 + RAS/MAPK + PI3K activation → proliferation, survival' },
+];
+
+// Chromosome sizes (approximate relative, in Mbp)
+const CHR_SIZES = [248,242,199,191,181,171,160,145,138,134,135,133,114,107,102,90,83,80,59,62,48,51,155,59];
+
+let selectedCancer = 'all';
+let currentView = 'chromosome';
+let currentPathway = 'ras';
+let selectedGene = null;
+let mutChartInst = null;
+
+// ── SIDEBAR ──
+const cancerList = document.getElementById('cancerList');
+CANCERS.forEach(c => {
+  const div = document.createElement('div');
+  div.className = 'cancer-item' + (c.id === 'all' ? ' active' : '');
+  div.innerHTML = `<div class="cancer-dot" style="background:${c.color}"></div><div class="cancer-name">${c.name}</div><div class="cancer-count">${c.count}</div>`;
+  div.addEventListener('click', () => {
+    document.querySelectorAll('.cancer-item').forEach(i => i.classList.remove('active'));
+    div.classList.add('active');
+    selectedCancer = c.id;
+    updateCancerFilter();
+  });
+  cancerList.appendChild(div);
+});
+
+function updateCancerFilter() {
+  const c = CANCERS.find(x => x.id === selectedCancer);
+  document.getElementById('chrTitle').textContent = c.id === 'all' ? 'Human Cancer Genome — All Chromosomes' : `${c.name} — Mutated Genes`;
+  drawChromosome();
+  populateRightPanel();
+}
+
+// ── RIGHT PANEL ──
+function populateRightPanel() {
+  const visible = selectedCancer === 'all' ? GENES : GENES.filter(g => g.cancers.includes(selectedCancer));
+  const sorted = [...visible].sort((a,b) => b.mutRate - a.mutRate);
+  const top = document.getElementById('rpTopGenes');
+  top.innerHTML = sorted.slice(0,4).map(g => `
+    <div class="rp-gene-card" onclick="showGeneDetail('${g.id}')">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="rp-gene-name">${g.id}</span>
+        <span style="font-size:0.75rem;font-weight:700;color:${g.color}">${g.mutRate}%</span>
+      </div>
+      <div class="rp-gene-type">${g.fullName}</div>
+      <div class="rp-gene-bar" style="background:${g.color};width:${g.mutRate}%"></div>
+    </div>`).join('');
+  const list = document.getElementById('rpGeneList');
+  list.innerHTML = sorted.map(g => `
+    <div class="compare-slot" onclick="showGeneDetail('${g.id}')">
+      <div class="compare-slot-dot" style="background:${g.color}"></div>
+      <span class="compare-slot-name">${g.id}</span>
+      <span class="compare-slot-pct">${g.mutRate}%</span>
+    </div>`).join('');
+}
+populateRightPanel();
+
+// ── CHROMOSOME CANVAS ──
+const chrCanvas = document.getElementById('chrCanvas');
+const cc = chrCanvas.getContext('2d');
+let chrAnimFrame = 0;
+
+function resizeChrCanvas() {
+  chrCanvas.width = chrCanvas.offsetWidth;
+  drawChromosome();
+}
+window.addEventListener('resize', resizeChrCanvas);
+
+function drawChromosome() {
+  const w = chrCanvas.width;
+  const cols = Math.floor(w / 110) || 4;
+  const rows = Math.ceil(24 / cols);
+  const cellW = w / cols;
+  const cellH = 90;
+  chrCanvas.height = rows * cellH + 20;
+  cc.clearRect(0, 0, chrCanvas.width, chrCanvas.height);
+  const visGenes = selectedCancer === 'all' ? GENES : GENES.filter(g => g.cancers.includes(selectedCancer));
+  for (let i = 0; i < 24; i++) {
+    const col = i % cols, row = Math.floor(i / cols);
+    const x = col * cellW, y = row * cellH + 10;
+    const label = i < 22 ? `Chr ${i+1}` : (i === 22 ? 'Chr X' : 'Chr Y');
+    const chrNum = i + 1;
+    const chrGenes = visGenes.filter(g => g.chr === chrNum);
+    drawChr(x + 10, y, cellW - 20, cellH - 20, label, chrGenes, CHR_SIZES[i]);
+  }
+}
+
+function drawChr(x, y, w, h, label, genes, size) {
+  const barH = h - 28, barY = y + 18, barX = x + 20, barW = w - 40;
+  const norm = size / 248;
+  const bw = Math.max(barW * norm, 30);
+  // chromosome bar background
+  cc.beginPath();
+  cc.roundRect(barX, barY, bw, barH * 0.4, 4);
+  cc.fillStyle = 'rgba(255,255,255,0.06)';
+  cc.fill();
+  cc.strokeStyle = 'rgba(255,255,255,0.1)'; cc.lineWidth = 0.5;
+  cc.stroke();
+  // centromere
+  const centX = barX + bw * 0.4;
+  cc.fillStyle = 'rgba(255,255,255,0.12)';
+  cc.beginPath(); cc.arc(centX, barY + barH * 0.2, 4, 0, Math.PI*2); cc.fill();
+  // gene marks
+  genes.forEach(g => {
+    const gx = barX + (g.pos || 0.5) * bw;
+    const gy = barY;
+    cc.fillStyle = g.color;
+    cc.globalAlpha = 0.9;
+    cc.beginPath(); cc.roundRect(gx - 2, gy, 4, barH * 0.4, 1); cc.fill();
+    cc.globalAlpha = 1;
+  });
+  // label
+  cc.fillStyle = '#94a3b8'; cc.font = '10px Inter'; cc.textAlign = 'center';
+  cc.fillText(label, barX + bw/2, y + 12);
+  // gene count badge
+  if (genes.length > 0) {
+    cc.fillStyle = '#00d4ff'; cc.font = '9px Inter';
+    cc.fillText(`${genes.length} gene${genes.length>1?'s':''}`, barX + bw/2, barY + barH * 0.4 + 12);
+  }
+}
+
+chrCanvas.addEventListener('click', e => {
+  const rect = chrCanvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) * (chrCanvas.width / rect.width);
+  const my = (e.clientY - rect.top) * (chrCanvas.height / rect.height);
+  const w = chrCanvas.width;
+  const cols = Math.floor(w / 110) || 4;
+  const cellW = w / cols;
+  const cellH = 90;
+  const col = Math.floor(mx / cellW);
+  const row = Math.floor((my - 10) / cellH);
+  const i = row * cols + col;
+  if (i >= 0 && i < 24) {
+    const chrNum = i + 1;
+    const visGenes = selectedCancer === 'all' ? GENES : GENES.filter(g => g.cancers.includes(selectedCancer));
+    const chrGenes = visGenes.filter(g => g.chr === chrNum);
+    if (chrGenes.length > 0) showGeneDetail(chrGenes[0].id);
+  }
+});
+
+// ── GENE DETAIL ──
+function showGeneDetail(geneId) {
+  const g = GENES.find(x => x.id === geneId);
+  if (!g) return;
+  selectedGene = g;
+  document.getElementById('chromosomeView').style.display = 'none';
+  const dv = document.getElementById('geneDetailView');
+  dv.style.display = 'flex';
+  document.getElementById('detailGeneName').textContent = g.id;
+  document.getElementById('detailGeneName').style.color = g.color;
+  const typeLabels = { oncogene:'Oncogene', suppressor:'Tumor Suppressor', kinase:'Kinase', other:'Other' };
+  const typeBgs = { oncogene:'rgba(239,68,68,0.15)', suppressor:'rgba(59,130,246,0.15)', kinase:'rgba(245,158,11,0.15)', other:'rgba(16,185,129,0.15)' };
+  const typeCols = { oncogene:'#fca5a5', suppressor:'#93c5fd', kinase:'#fcd34d', other:'#6ee7b7' };
+  document.getElementById('detailBadges').innerHTML =
+    `<span class="badge" style="background:${typeBgs[g.type]||typeBgs.other};color:${typeCols[g.type]||typeCols.other}">${typeLabels[g.type]||'Other'}</span>` +
+    `<span class="badge" style="background:rgba(0,212,255,0.1);color:var(--accent)">Chr ${g.chr}</span>` +
+    `<span class="badge" style="background:rgba(124,58,237,0.1);color:#a78bfa">${g.pathway}</span>`;
+
+  document.getElementById('detailBody').innerHTML = `
+    <div class="detail-card full">
+      <h3>About this gene</h3>
+      <p style="font-size:0.88rem;color:var(--text2);line-height:1.7">${g.desc}</p>
+    </div>
+    <div class="detail-card">
+      <h3>Gene Information</h3>
+      <div class="info-row"><span class="info-key">Full name</span><span class="info-val">${g.fullName}</span></div>
+      <div class="info-row"><span class="info-key">Location</span><span class="info-val">${g.location}</span></div>
+      <div class="info-row"><span class="info-key">Function</span><span class="info-val">${g.function}</span></div>
+      <div class="info-row"><span class="info-key">Pathway</span><span class="info-val" style="color:${g.color}">${g.pathway}</span></div>
+      <div class="info-row"><span class="info-key">Avg. mutation rate</span><span class="info-val" style="color:${g.color}">${g.mutRate}%</span></div>
+    </div>
+    <div class="detail-card">
+      <h3>Mutation Spectrum</h3>
+      <div class="mut-bar-wrap">
+        ${g.mutations.map(m => `<div class="mut-row"><div class="mut-label">${m.type}</div><div class="mut-bar-bg"><div class="mut-bar" style="width:${m.pct}%;background:${g.color}"></div></div><div class="mut-pct" style="color:${g.color}">${m.pct}%</div></div>`).join('')}
+      </div>
+    </div>
+    <div class="detail-card">
+      <h3>Mechanism of Action</h3>
+      <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.1);border-radius:8px;padding:10px;font-size:0.82rem;color:var(--text2);line-height:1.6;font-style:italic">${g.mechanism}</div>
+      <div style="margin-top:0.75rem"><div style="font-size:0.72rem;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Associated Cancers</div>
+      <div class="cancer-tags">${g.cancers.map(c => { const ct = CANCERS.find(x=>x.id===c); return ct ? `<span class="cancer-tag" style="border-color:${ct.color}33;color:${ct.color};background:${ct.color}11">${ct.name.split('(')[0].trim()}</span>` : ''; }).join('')}</div></div>
+    </div>
+    <div class="detail-card">
+      <h3>Targeted Drugs</h3>
+      <div class="cancer-tags">${g.drugs.map(d => `<span class="drug-tag">${d}</span>`).join('')}</div>
+      <div style="margin-top:0.75rem;font-size:0.8rem;color:var(--text3)">Note: Drug approvals vary by cancer type and specific mutation. Always verify current FDA labeling.</div>
+    </div>`;
+  setTimeout(() => { document.querySelectorAll('.mut-bar').forEach(b => { const w = b.style.width; b.style.width='0'; setTimeout(() => b.style.width=w, 50); }); }, 100);
+}
+
+function backToChromosome() {
+  document.getElementById('geneDetailView').style.display = 'none';
+  document.getElementById('chromosomeView').style.display = 'flex';
+  selectedGene = null;
+  setTimeout(resizeChrCanvas, 50);
+}
+
+// ── VIEW TOGGLE ──
+function setView(v) {
+  currentView = v;
+  document.getElementById('btnChr').classList.toggle('active', v === 'chromosome');
+  document.getElementById('btnPath').classList.toggle('active', v === 'pathway');
+  document.getElementById('chromosomeView').style.display = v === 'chromosome' ? 'flex' : 'none';
+  document.getElementById('geneDetailView').style.display = 'none';
+  document.getElementById('pathwayView').style.display = v === 'pathway' ? 'flex' : 'none';
+  if (v === 'pathway') {
+    drawPathway(currentPathway);
+    showTip('💡 Click a pathway button above to switch between RAS, PI3K, p53, Wnt, and Cell Cycle diagrams');
+  }
+  if (v === 'chromosome') {
+    setTimeout(resizeChrCanvas, 50);
+    showTip('💡 Click any chromosome bar or gene in the right panel to see its full details');
+  }
+}
+
+// ── PATHWAY CANVAS ──
+const pwCanvas = document.getElementById('pathwayCanvas');
+const pwc = pwCanvas.getContext('2d');
+
+const PATHWAYS = {
+  ras: {
+    title: 'RAS/MAPK Signaling Pathway',
+    nodes: [
+      { id:'RTK',    x:0.5, y:0.07, label:'RTK\n(EGFR/VEGFR)', color:'#f59e0b', shape:'rect' },
+      { id:'RAS',    x:0.5, y:0.22, label:'RAS\n(KRAS/NRAS/HRAS)', color:'#ef4444', shape:'diamond' },
+      { id:'RAF',    x:0.5, y:0.38, label:'RAF\n(BRAF)', color:'#ef4444', shape:'rect' },
+      { id:'MEK',    x:0.5, y:0.53, label:'MEK1/2', color:'#f59e0b', shape:'rect' },
+      { id:'ERK',    x:0.5, y:0.68, label:'ERK1/2', color:'#f59e0b', shape:'rect' },
+      { id:'NUC',    x:0.5, y:0.83, label:'Nucleus\n(MYC, Cyclin D, CDK4)', color:'#10b981', shape:'rect' },
+      { id:'NF1',    x:0.2, y:0.22, label:'NF1\n(tumor supp)', color:'#3b82f6', shape:'rect' },
+      { id:'PI3K2',  x:0.8, y:0.32, label:'PI3K\n(branch)', color:'#8b5cf6', shape:'rect' },
+      { id:'SOS',    x:0.2, y:0.10, label:'SOS/GRB2', color:'#94a3b8', shape:'rect' },
+    ],
+    edges: [
+      { from:'RTK', to:'SOS', label:'adapters', dashed:false },
+      { from:'SOS', to:'RAS', label:'GEF', dashed:false },
+      { from:'NF1', to:'RAS', label:'GAP (⊣)', dashed:false, inhibit:true },
+      { from:'RAS', to:'RAF', label:'activates', dashed:false },
+      { from:'RAS', to:'PI3K2', label:'branch', dashed:true },
+      { from:'RAF', to:'MEK', label:'phosphorylates', dashed:false },
+      { from:'MEK', to:'ERK', label:'phosphorylates', dashed:false },
+      { from:'ERK', to:'NUC', label:'transcription', dashed:false },
+    ],
+    mutGenes: ['KRAS','BRAF','EGFR','NF1'],
+    desc: 'The RAS/MAPK pathway relays growth signals from cell surface receptors to gene expression in the nucleus. Mutations in KRAS (most common), BRAF, or loss of NF1 constitutively activate this cascade.'
+  },
+  pi3k: {
+    title: 'PI3K/AKT/mTOR Pathway',
+    nodes: [
+      { id:'RTK',   x:0.5, y:0.07, label:'RTK\n(HER2/EGFR/MET)', color:'#f59e0b', shape:'rect' },
+      { id:'PI3K',  x:0.5, y:0.22, label:'PI3K\n(PIK3CA)', color:'#ef4444', shape:'diamond' },
+      { id:'PIP3',  x:0.5, y:0.37, label:'PIP3', color:'#8b5cf6', shape:'circle' },
+      { id:'PTEN',  x:0.2, y:0.37, label:'PTEN\n(tumor supp)', color:'#3b82f6', shape:'rect' },
+      { id:'AKT',   x:0.5, y:0.52, label:'AKT / PKB', color:'#ef4444', shape:'rect' },
+      { id:'mTOR',  x:0.3, y:0.67, label:'mTORC1', color:'#f59e0b', shape:'rect' },
+      { id:'FOXO',  x:0.7, y:0.67, label:'FOXO\n(inactivated)', color:'#3b82f6', shape:'rect' },
+      { id:'S6K',   x:0.3, y:0.83, label:'S6K / 4E-BP1\nProtein synthesis', color:'#10b981', shape:'rect' },
+      { id:'APO',   x:0.7, y:0.83, label:'BAD / BAX\n(Survival)', color:'#10b981', shape:'rect' },
+    ],
+    edges: [
+      { from:'RTK', to:'PI3K', label:'activates' },
+      { from:'PI3K', to:'PIP3', label:'PIP2→PIP3' },
+      { from:'PTEN', to:'PIP3', label:'PIP3→PIP2 (⊣)', inhibit:true },
+      { from:'PIP3', to:'AKT', label:'recruits/activates' },
+      { from:'AKT', to:'mTOR', label:'activates' },
+      { from:'AKT', to:'FOXO', label:'inhibits (⊣)', inhibit:true },
+      { from:'mTOR', to:'S6K', label:'growth' },
+      { from:'FOXO', to:'APO', label:'survival' },
+    ],
+    mutGenes: ['PIK3CA','PTEN','AKT1'],
+    desc: 'The PI3K/AKT/mTOR pathway controls cell growth, survival, and metabolism. Activated by RTK signaling and opposed by PTEN. Mutations in PIK3CA or loss of PTEN hyperactivate AKT and mTOR.'
+  },
+  p53: {
+    title: 'p53 / DNA Damage Response',
+    nodes: [
+      { id:'DSB',   x:0.5, y:0.06, label:'DNA Damage\n(DSB / SSB)', color:'#ef4444', shape:'rect' },
+      { id:'ATM',   x:0.3, y:0.20, label:'ATM/ATR\nkinases', color:'#f59e0b', shape:'rect' },
+      { id:'CHK',   x:0.7, y:0.20, label:'CHK1/CHK2', color:'#f59e0b', shape:'rect' },
+      { id:'MDM2',  x:0.2, y:0.36, label:'MDM2\n(degrades p53)', color:'#94a3b8', shape:'rect' },
+      { id:'TP53',  x:0.5, y:0.36, label:'p53 (TP53)', color:'#3b82f6', shape:'diamond' },
+      { id:'p21',   x:0.25, y:0.55, label:'p21\n(CDKN1A)', color:'#10b981', shape:'rect' },
+      { id:'PUMA',  x:0.5, y:0.55, label:'PUMA/BAX\nApoptosis genes', color:'#10b981', shape:'rect' },
+      { id:'p16',   x:0.75, y:0.55, label:'p16 / GADD45\nDNA repair', color:'#10b981', shape:'rect' },
+      { id:'STOP',  x:0.25, y:0.75, label:'G1/S ARREST\n(stops division)', color:'#3b82f6', shape:'rect' },
+      { id:'APO2',  x:0.5, y:0.75, label:'APOPTOSIS\n(cell death)', color:'#ef4444', shape:'rect' },
+      { id:'REP',   x:0.75, y:0.75, label:'DNA REPAIR\n(NHEJ / HR)', color:'#8b5cf6', shape:'rect' },
+    ],
+    edges: [
+      { from:'DSB', to:'ATM', label:'activates' },
+      { from:'DSB', to:'CHK', label:'activates' },
+      { from:'ATM', to:'TP53', label:'phosphorylates' },
+      { from:'CHK', to:'TP53', label:'phosphorylates' },
+      { from:'MDM2', to:'TP53', label:'degrades (⊣)', inhibit:true },
+      { from:'TP53', to:'p21', label:'transcribes' },
+      { from:'TP53', to:'PUMA', label:'transcribes' },
+      { from:'TP53', to:'p16', label:'transcribes' },
+      { from:'p21', to:'STOP', label:'CDK inhibition' },
+      { from:'PUMA', to:'APO2', label:'Bax/Bak' },
+      { from:'p16', to:'REP', label:'PCNA, GADD45' },
+    ],
+    mutGenes: ['TP53','MDM2','CDKN2A'],
+    desc: 'The p53 pathway is the primary cellular response to DNA damage. Active p53 either pauses the cell cycle for repair or triggers apoptosis if damage is irreparable. TP53 loss removes this critical checkpoint.'
+  },
+  wnt: {
+    title: 'Wnt / β-catenin Pathway',
+    nodes: [
+      { id:'WNT',  x:0.5, y:0.06, label:'WNT Ligand', color:'#94a3b8', shape:'rect' },
+      { id:'FZD',  x:0.5, y:0.20, label:'Frizzled / LRP5/6\nReceptors', color:'#f59e0b', shape:'rect' },
+      { id:'DVL',  x:0.5, y:0.34, label:'Dishevelled (DVL)', color:'#f59e0b', shape:'rect' },
+      { id:'DEST', x:0.25, y:0.50, label:'Destruction Complex\n(APC/AXIN/GSK3β)', color:'#3b82f6', shape:'rect' },
+      { id:'BCAT', x:0.65, y:0.50, label:'β-catenin\n(stabilized)', color:'#ef4444', shape:'diamond' },
+      { id:'PRO',  x:0.25, y:0.68, label:'β-catenin\nphosphorylated → degraded', color:'#3b82f6', shape:'rect' },
+      { id:'NUC2', x:0.65, y:0.68, label:'β-catenin\nnuclear', color:'#ef4444', shape:'rect' },
+      { id:'TCF',  x:0.65, y:0.83, label:'TCF/LEF\n(MYC, Cyclin D, VEGF)', color:'#10b981', shape:'rect' },
+    ],
+    edges: [
+      { from:'WNT', to:'FZD', label:'binds' },
+      { from:'FZD', to:'DVL', label:'activates' },
+      { from:'DVL', to:'DEST', label:'inhibits (⊣)', inhibit:true },
+      { from:'DEST', to:'PRO', label:'OFF state: degrades' },
+      { from:'DVL', to:'BCAT', label:'stabilizes (ON)' },
+      { from:'BCAT', to:'NUC2', label:'translocates' },
+      { from:'NUC2', to:'TCF', label:'co-activates' },
+    ],
+    mutGenes: ['APC','CTNNB1','AXIN1'],
+    desc: 'Wnt signaling controls cell fate and proliferation. APC normally promotes β-catenin degradation. APC mutation (80% of colon cancers) or CTNNB1 mutation allows β-catenin to accumulate and activate oncogenes like MYC.'
+  },
+  cell: {
+    title: 'Cell Cycle Control',
+    nodes: [
+      { id:'G1',    x:0.15, y:0.45, label:'G1 Phase', color:'#94a3b8', shape:'circle' },
+      { id:'S',     x:0.42, y:0.20, label:'S Phase\n(DNA synthesis)', color:'#10b981', shape:'circle' },
+      { id:'G2',    x:0.72, y:0.45, label:'G2 Phase', color:'#94a3b8', shape:'circle' },
+      { id:'M',     x:0.5,  y:0.75, label:'M Phase\n(Mitosis)', color:'#8b5cf6', shape:'circle' },
+      { id:'G1S',   x:0.28, y:0.28, label:'G1/S checkpoint\n(pRb/E2F)', color:'#3b82f6', shape:'rect' },
+      { id:'G2M',   x:0.65, y:0.28, label:'G2/M checkpoint\n(CHK1/WEE1)', color:'#3b82f6', shape:'rect' },
+      { id:'CDK46', x:0.10, y:0.20, label:'Cyclin D\nCDK4/6', color:'#ef4444', shape:'rect' },
+      { id:'CDK2',  x:0.35, y:0.08, label:'Cyclin E/A\nCDK2', color:'#ef4444', shape:'rect' },
+      { id:'CDK1',  x:0.75, y:0.20, label:'Cyclin B\nCDK1', color:'#ef4444', shape:'rect' },
+      { id:'P16',   x:0.10, y:0.65, label:'p16/p21\n(inhibit CDK)', color:'#3b82f6', shape:'rect' },
+    ],
+    edges: [
+      { from:'G1', to:'G1S', label:'' },
+      { from:'G1S', to:'S', label:'E2F → S-phase genes' },
+      { from:'S', to:'G2M', label:'' },
+      { from:'G2M', to:'G2', label:'' },
+      { from:'G2', to:'M', label:'' },
+      { from:'M', to:'G1', label:'cytokinesis' },
+      { from:'CDK46', to:'G1S', label:'phosphorylates pRb' },
+      { from:'CDK2', to:'S', label:'drives' },
+      { from:'CDK1', to:'G2M', label:'drives' },
+      { from:'P16', to:'CDK46', label:'inhibits (⊣)', inhibit:true },
+    ],
+    mutGenes: ['RB1','CDKN2A','CCND1','CDK4'],
+    desc: 'The cell cycle has four phases (G1, S, G2, M) with key checkpoints controlled by cyclin-CDK complexes and inhibitors. pRb/p16 restrict the G1/S transition. Loss of these controls drives uncontrolled proliferation.'
+  }
+};
+
+function drawPathway(key) {
+  currentPathway = key;
+  const pw = PATHWAYS[key];
+  const w = pwCanvas.offsetWidth || 700;
+  const h = pwCanvas.offsetHeight || 500;
+  pwCanvas.width = w; pwCanvas.height = h;
+  pwc.clearRect(0, 0, w, h);
+  pwc.fillStyle = 'rgba(10,22,40,0.3)';
+  pwc.fillRect(0,0,w,h);
+  // description box
+  pwc.fillStyle = 'rgba(0,212,255,0.06)';
+  pwc.strokeStyle = 'rgba(0,212,255,0.15)'; pwc.lineWidth = 1;
+  pwc.beginPath(); pwc.roundRect(12, 12, w - 24, 42, 8); pwc.fill(); pwc.stroke();
+  pwc.fillStyle = '#94a3b8'; pwc.font = '11px Inter'; pwc.textAlign = 'left';
+  const words = pw.desc.split(' '); let line = '', ly = 30;
+  words.forEach(word => { const test = line + word + ' '; if (pwc.measureText(test).width > w - 36 && line) { pwc.fillText(line, 20, ly); line = word + ' '; ly += 14; } else line = test; });
+  pwc.fillText(line, 20, ly);
+  const nodeMap = {};
+  pw.nodes.forEach(n => { nodeMap[n.id] = { x: n.x * w, y: n.y * (h - 60) + 60 }; });
+  // edges
+  pw.edges.forEach(e => {
+    const from = nodeMap[e.from], to = nodeMap[e.to];
+    if (!from || !to) return;
+    pwc.beginPath();
+    pwc.setLineDash(e.dashed ? [5,4] : []);
+    pwc.moveTo(from.x, from.y);
+    pwc.lineTo(to.x, to.y);
+    pwc.strokeStyle = e.inhibit ? 'rgba(239,68,68,0.5)' : 'rgba(0,212,255,0.35)';
+    pwc.lineWidth = 1.5;
+    pwc.stroke();
+    pwc.setLineDash([]);
+    // arrowhead
+    const angle = Math.atan2(to.y - from.y, to.x - from.x);
+    const ax = to.x - 16 * Math.cos(angle), ay = to.y - 16 * Math.sin(angle);
+    if (e.inhibit) {
+      pwc.fillStyle = 'rgba(239,68,68,0.8)';
+      pwc.beginPath(); pwc.arc(ax, ay, 4, 0, Math.PI*2); pwc.fill();
+    } else {
+      pwc.beginPath();
+      pwc.moveTo(ax, ay);
+      pwc.lineTo(ax - 8*Math.cos(angle-0.4), ay - 8*Math.sin(angle-0.4));
+      pwc.lineTo(ax - 8*Math.cos(angle+0.4), ay - 8*Math.sin(angle+0.4));
+      pwc.closePath();
+      pwc.fillStyle = 'rgba(0,212,255,0.7)';
+      pwc.fill();
+    }
+    // edge label
+    if (e.label) {
+      const mx = (from.x + to.x)/2, my = (from.y + to.y)/2;
+      pwc.fillStyle = 'rgba(148,163,184,0.8)'; pwc.font = '9px Inter'; pwc.textAlign = 'center';
+      pwc.fillText(e.label, mx, my - 5);
+    }
+  });
+  // nodes
+  pw.nodes.forEach(n => {
+    const nx = nodeMap[n.id].x, ny = nodeMap[n.id].y;
+    const isMut = pw.mutGenes.includes(n.id);
+    const lines = n.label.split('\n');
+    const bw = Math.max(...lines.map(l => pwc.measureText(l).width)) + 24;
+    const bh = lines.length * 15 + 14;
+    if (isMut) {
+      pwc.strokeStyle = n.color; pwc.lineWidth = 2.5;
+      pwc.shadowColor = n.color; pwc.shadowBlur = 12;
+    } else {
+      pwc.strokeStyle = 'rgba(255,255,255,0.15)'; pwc.lineWidth = 1;
+      pwc.shadowBlur = 0;
+    }
+    pwc.fillStyle = isMut ? `${n.color}22` : 'rgba(15,31,61,0.9)';
+    if (n.shape === 'circle') {
+      const r = 28; pwc.beginPath(); pwc.arc(nx, ny, r, 0, Math.PI*2); pwc.fill(); pwc.stroke();
+    } else if (n.shape === 'diamond') {
+      const dw = bw/2 + 8, dh = bh/2 + 8;
+      pwc.beginPath(); pwc.moveTo(nx, ny-dh); pwc.lineTo(nx+dw, ny); pwc.lineTo(nx, ny+dh); pwc.lineTo(nx-dw, ny); pwc.closePath();
+      pwc.fill(); pwc.stroke();
+    } else {
+      pwc.beginPath(); pwc.roundRect(nx - bw/2, ny - bh/2, bw, bh, 6); pwc.fill(); pwc.stroke();
+    }
+    pwc.shadowBlur = 0;
+    lines.forEach((line, li) => {
+      const ty = ny - (lines.length - 1) * 7.5 + li * 15;
+      pwc.fillStyle = isMut ? n.color : '#e2e8f0';
+      pwc.font = `${isMut ? '700' : '500'} ${lines.length > 1 && li === 0 ? '11' : '10'}px Inter`;
+      pwc.textAlign = 'center';
+      pwc.fillText(line, nx, ty + 4);
+    });
+    if (isMut) {
+      pwc.fillStyle = '#ef4444'; pwc.font = '9px Inter';
+      pwc.fillText('⚡ mutated in cancer', nx, ny + bh/2 + 11);
+    }
+  });
+  // legend
+  pwc.fillStyle = '#64748b'; pwc.font = '9px Inter'; pwc.textAlign = 'left';
+  pwc.fillText('── activates      ⊣ inhibits      ⚡ commonly mutated', 12, h - 10);
+}
+
+function setPathway(key, btn) {
+  document.querySelectorAll('.pathway-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  drawPathway(key);
+}
+
+window.addEventListener('resize', () => {
+  if (currentView === 'pathway') drawPathway(currentPathway);
+});
+
+// ── SEARCH ──
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  if (q.length < 1) { searchResults.classList.remove('open'); return; }
+  const matches = GENES.filter(g => g.id.toLowerCase().includes(q) || g.fullName.toLowerCase().includes(q)).slice(0, 8);
+  if (matches.length === 0) { searchResults.classList.remove('open'); return; }
+  searchResults.innerHTML = matches.map(g => `
+    <div class="search-result-item" onclick="selectSearchResult('${g.id}')">
+      <div class="sri-dot" style="background:${g.color}"></div>
+      <div>
+        <div class="sri-name">${g.id}</div>
+        <div class="sri-type">${g.fullName} · ${g.pathway}</div>
+      </div>
+      <div style="font-size:0.72rem;color:${g.color};font-weight:700;margin-left:auto">${g.mutRate}%</div>
+    </div>`).join('');
+  searchResults.classList.add('open');
+});
+
+function selectSearchResult(id) {
+  searchResults.classList.remove('open');
+  searchInput.value = '';
+  if (currentView !== 'chromosome') setView('chromosome');
+  setTimeout(() => showGeneDetail(id), 100);
+}
+
+document.addEventListener('click', e => {
+  if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+    searchResults.classList.remove('open');
+  }
+});
+
+// ── INTRO MODAL ──
+function showIntro() {
+  if (sessionStorage.getItem('explorerIntroSeen')) return;
+  const overlay = document.getElementById('introOverlay');
+  if (overlay) overlay.style.display = 'flex';
+}
+function dismissIntro() {
+  sessionStorage.setItem('explorerIntroSeen', '1');
+  const overlay = document.getElementById('introOverlay');
+  if (overlay) { overlay.style.opacity = '0'; overlay.style.transition = 'opacity 0.3s'; setTimeout(() => overlay.remove(), 300); }
+}
+
+// ── VIEW TIP ──
+function showTip(msg) {
+  const tip = document.getElementById('viewTip');
+  tip.textContent = msg; tip.classList.add('show');
+  clearTimeout(tip._t);
+  tip._t = setTimeout(() => tip.classList.remove('show'), 3000);
+}
+const _origSetView = setView;
+
+// ── INIT ──
+setTimeout(() => { resizeChrCanvas(); showIntro(); }, 100);
+</script>
+
+<!-- INTRO MODAL -->
+<div class="intro-overlay" id="introOverlay">
+  <div class="intro-card">
+    <div class="intro-badge">🗺️ Welcome to the Explorer</div>
+    <h2>Your Cancer Genome Map</h2>
+    <p class="intro-sub">This is like Google Maps — but instead of streets and buildings, you're navigating <strong>cancer genes</strong>. Here's how to get around:</p>
+    <ul class="intro-steps">
+      <li>
+        <span class="intro-step-icon">🧬</span>
+        <div><strong>Click any chromosome</strong> to jump to the genes living on it. Colored marks show where cancer genes sit.</div>
+      </li>
+      <li>
+        <span class="intro-step-icon">🔍</span>
+        <div><strong>Search a gene by name</strong> (try "TP53" or "KRAS") using the search bar at the top to instantly pull up its full profile.</div>
+      </li>
+      <li>
+        <span class="intro-step-icon">⚙️</span>
+        <div><strong>Switch to Pathways view</strong> (top-right button) to see how cancer genes connect and talk to each other inside the cell.</div>
+      </li>
+      <li>
+        <span class="intro-step-icon">🎯</span>
+        <div><strong>Filter by cancer type</strong> in the left sidebar — instantly highlights only the genes relevant to that cancer.</div>
+      </li>
+    </ul>
+    <button class="intro-btn" onclick="dismissIntro()">🚀 Start Exploring the Genome</button>
+  </div>
+</div>
+<div class="view-tip" id="viewTip"></div>
+</body>
+</html>

@@ -1,0 +1,1505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GeneLens AI — Google Maps for Cancer Genomics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    :root {
+      --bg: #050a14;
+      --bg2: #0a1628;
+      --bg3: #0f1f3d;
+      --accent: #00d4ff;
+      --accent2: #7c3aed;
+      --accent3: #10b981;
+      --accent4: #f59e0b;
+      --accent5: #ef4444;
+      --text: #e2e8f0;
+      --text2: #94a3b8;
+      --text3: #64748b;
+      --card: rgba(15, 31, 61, 0.8);
+      --border: rgba(0, 212, 255, 0.15);
+      --border2: rgba(255,255,255,0.08);
+      --glow: 0 0 30px rgba(0, 212, 255, 0.15);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      overflow-x: hidden;
+    }
+    h1,h2,h3,h4 { font-family: 'Space Grotesk', sans-serif; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 2rem;
+      background: rgba(5, 10, 20, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border2);
+    }
+    .logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.4rem; font-weight: 700;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+    }
+    .nav-links { display: flex; align-items: center; gap: 2rem; }
+    .nav-links a {
+      color: var(--text2); text-decoration: none; font-size: 0.9rem;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+    .nav-cta {
+      background: linear-gradient(135deg, var(--accent), #0099cc);
+      color: #000 !important; font-weight: 600; padding: 0.5rem 1.25rem;
+      border-radius: 8px; font-size: 0.9rem !important;
+    }
+    .nav-cta:hover { opacity: 0.9; color: #000 !important; }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 8rem 2rem 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse at 20% 50%, rgba(124,58,237,0.12) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 30%, rgba(0,212,255,0.1) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 100%, rgba(16,185,129,0.06) 0%, transparent 60%);
+    }
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .hero-content {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: center;
+      position: relative; z-index: 1;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(0,212,255,0.1);
+      border: 1px solid rgba(0,212,255,0.3);
+      border-radius: 50px; padding: 6px 16px;
+      font-size: 0.8rem; color: var(--accent);
+      margin-bottom: 1.5rem;
+    }
+    .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+    .hero h1 {
+      font-size: clamp(2.5rem, 5vw, 4rem);
+      font-weight: 800; line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero p {
+      font-size: 1.15rem; color: var(--text2);
+      line-height: 1.7; margin-bottom: 2rem;
+    }
+    .hero-actions { display: flex; gap: 1rem; flex-wrap: wrap; }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #0099cc);
+      color: #000; font-weight: 700; padding: 0.85rem 2rem;
+      border-radius: 10px; border: none; cursor: pointer;
+      font-size: 1rem; font-family: 'Inter', sans-serif;
+      transition: transform 0.2s, opacity 0.2s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-primary:hover { transform: translateY(-2px); opacity: 0.9; }
+    .btn-secondary {
+      background: transparent;
+      color: var(--text); font-weight: 600; padding: 0.85rem 2rem;
+      border-radius: 10px; border: 1px solid var(--border2);
+      cursor: pointer; font-size: 1rem; font-family: 'Inter', sans-serif;
+      transition: border-color 0.2s, background 0.2s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-secondary:hover { border-color: var(--accent); background: rgba(0,212,255,0.05); }
+    .hero-stats {
+      display: flex; gap: 2rem; margin-top: 3rem;
+      padding-top: 2rem; border-top: 1px solid var(--border2);
+    }
+    .stat { text-align: center; }
+    .stat-num { font-size: 1.8rem; font-weight: 800; color: var(--accent); font-family: 'Space Grotesk',sans-serif; }
+    .stat-label { font-size: 0.8rem; color: var(--text3); margin-top: 2px; }
+
+    /* ── DNA CANVAS ── */
+    #dnaCanvas {
+      width: 100%; height: 500px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(10,22,40,0.5);
+    }
+
+    /* ── SECTIONS ── */
+    section { padding: 5rem 2rem; }
+    .section-inner { max-width: 1200px; margin: 0 auto; }
+    .section-tag {
+      font-size: 0.8rem; font-weight: 600;
+      color: var(--accent); text-transform: uppercase;
+      letter-spacing: 2px; margin-bottom: 1rem;
+    }
+    .section-title {
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 700; margin-bottom: 1rem;
+    }
+    .section-sub {
+      font-size: 1.05rem; color: var(--text2);
+      max-width: 600px; line-height: 1.7;
+    }
+
+    /* ── FEATURES ── */
+    #features { background: var(--bg2); }
+    .features-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem; margin-top: 3rem;
+    }
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border2);
+      border-radius: 16px; padding: 1.75rem;
+      transition: border-color 0.3s, transform 0.3s;
+      cursor: pointer;
+    }
+    .feature-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: var(--glow); }
+    .feature-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; margin-bottom: 1rem;
+    }
+    .feature-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .feature-card p { font-size: 0.9rem; color: var(--text2); line-height: 1.6; }
+
+    /* ── GENE MAP EXPLORER ── */
+    #explorer { background: var(--bg); }
+    .explorer-layout {
+      display: grid; grid-template-columns: 1fr 340px;
+      gap: 1.5rem; margin-top: 2.5rem;
+    }
+    .map-container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+      position: relative; min-height: 500px;
+    }
+    .map-toolbar {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border2);
+      flex-wrap: wrap;
+    }
+    .map-toolbar-title { font-size: 0.85rem; font-weight: 600; color: var(--text2); }
+    .filter-btn {
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600;
+      border: 1px solid var(--border2);
+      background: transparent; color: var(--text2);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .filter-btn.active, .filter-btn:hover {
+      background: var(--accent); color: #000; border-color: var(--accent);
+    }
+    #geneMapCanvas {
+      width: 100%; display: block; cursor: crosshair;
+    }
+    .map-legend {
+      display: flex; gap: 1rem; padding: 0.75rem 1.25rem;
+      border-top: 1px solid var(--border2); flex-wrap: wrap;
+    }
+    .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.75rem; color: var(--text2); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+    .gene-sidebar {
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .sidebar-card {
+      background: var(--card); border: 1px solid var(--border2);
+      border-radius: 16px; padding: 1.25rem;
+    }
+    .sidebar-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text); }
+    #geneInfo { min-height: 200px; }
+    .gene-info-placeholder {
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; gap: 0.5rem;
+      height: 200px; color: var(--text3); font-size: 0.85rem; text-align: center;
+    }
+    .gene-info-placeholder .big { font-size: 2rem; }
+    .gene-details { display: none; }
+    .gene-name { font-size: 1.5rem; font-weight: 800; font-family: 'Space Grotesk',sans-serif; }
+    .gene-type-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 20px;
+      font-size: 0.72rem; font-weight: 700; margin: 6px 0 12px;
+    }
+    .gene-field { margin-bottom: 10px; }
+    .gene-field-label { font-size: 0.72rem; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
+    .gene-field-val { font-size: 0.88rem; color: var(--text); }
+    .mutation-bar {
+      height: 6px; border-radius: 3px; background: var(--border2);
+      margin-top: 4px; overflow: hidden;
+    }
+    .mutation-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+
+    .hot-genes { display: flex; flex-direction: column; gap: 6px; }
+    .hot-gene {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 10px; border-radius: 8px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border2);
+      cursor: pointer; transition: all 0.2s; font-size: 0.85rem;
+    }
+    .hot-gene:hover { border-color: var(--accent); background: rgba(0,212,255,0.05); }
+    .hot-gene-name { font-weight: 600; }
+    .hot-gene-count { font-size: 0.75rem; color: var(--text3); }
+    .hot-gene-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+    /* ── LEARNING PATHS ── */
+    #learn { background: var(--bg2); }
+    .paths-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem; margin-top: 3rem;
+    }
+    .path-card {
+      border-radius: 16px; padding: 2rem;
+      border: 1px solid var(--border2);
+      position: relative; overflow: hidden;
+      transition: transform 0.3s, border-color 0.3s;
+      cursor: pointer;
+    }
+    .path-card:hover { transform: translateY(-6px); }
+    .path-card::before {
+      content: ''; position: absolute; inset: 0;
+      opacity: 0.08; transition: opacity 0.3s;
+    }
+    .path-card:hover::before { opacity: 0.15; }
+    .path-card.beginner { background: rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.2); }
+    .path-card.beginner::before { background: var(--accent3); }
+    .path-card.intermediate { background: rgba(0,212,255,0.05); border-color: rgba(0,212,255,0.2); }
+    .path-card.intermediate::before { background: var(--accent); }
+    .path-card.advanced { background: rgba(124,58,237,0.05); border-color: rgba(124,58,237,0.2); }
+    .path-card.advanced::before { background: var(--accent2); }
+    .path-level {
+      font-size: 0.75rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 2px;
+      margin-bottom: 1rem; display: flex; align-items: center; gap: 6px;
+    }
+    .path-card.beginner .path-level { color: var(--accent3); }
+    .path-card.intermediate .path-level { color: var(--accent); }
+    .path-card.advanced .path-level { color: var(--accent2); }
+    .path-card h3 { font-size: 1.3rem; font-weight: 700; margin-bottom: 0.75rem; }
+    .path-card p { font-size: 0.9rem; color: var(--text2); line-height: 1.6; margin-bottom: 1.5rem; }
+    .path-modules { list-style: none; margin-bottom: 1.5rem; }
+    .path-modules li {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.85rem; color: var(--text2); padding: 4px 0;
+    }
+    .path-modules li::before {
+      content: ''; width: 6px; height: 6px; border-radius: 50%;
+      background: currentColor; flex-shrink: 0;
+    }
+    .path-card.beginner .path-modules li { color: rgba(16,185,129,0.8); }
+    .path-card.intermediate .path-modules li { color: rgba(0,212,255,0.8); }
+    .path-card.advanced .path-modules li { color: rgba(124,58,237,0.8); }
+    .path-meta { display: flex; gap: 1rem; font-size: 0.8rem; color: var(--text3); }
+
+    /* ── MUTATION VISUALIZER ── */
+    #visualizer { background: var(--bg); }
+    .viz-layout {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 1.5rem; margin-top: 2.5rem;
+    }
+    .viz-card {
+      background: var(--card); border: 1px solid var(--border2);
+      border-radius: 16px; padding: 1.5rem;
+    }
+    .viz-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 1.25rem; color: var(--text2); }
+    .cancer-selector {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 1.25rem;
+    }
+    .cancer-btn {
+      padding: 4px 12px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 600;
+      border: 1px solid var(--border2);
+      background: transparent; color: var(--text2);
+      cursor: pointer; transition: all 0.2s; font-family: 'Inter', sans-serif;
+    }
+    .cancer-btn.active { background: var(--accent2); color: #fff; border-color: var(--accent2); }
+    .cancer-btn:hover:not(.active) { border-color: var(--accent2); color: var(--accent2); }
+
+    /* ── QUIZ ── */
+    #quiz { background: var(--bg2); }
+    .quiz-container {
+      max-width: 700px; margin: 3rem auto 0;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2.5rem;
+    }
+    .quiz-progress {
+      display: flex; gap: 6px; margin-bottom: 2rem;
+    }
+    .quiz-dot {
+      flex: 1; height: 4px; border-radius: 2px;
+      background: var(--border2); transition: background 0.3s;
+    }
+    .quiz-dot.done { background: var(--accent3); }
+    .quiz-dot.current { background: var(--accent); }
+    .quiz-q-num { font-size: 0.8rem; color: var(--text3); margin-bottom: 0.75rem; }
+    .quiz-question { font-size: 1.2rem; font-weight: 600; margin-bottom: 2rem; line-height: 1.5; }
+    .quiz-options { display: flex; flex-direction: column; gap: 0.75rem; }
+    .quiz-option {
+      padding: 1rem 1.25rem; border-radius: 12px;
+      border: 1px solid var(--border2);
+      background: rgba(255,255,255,0.02);
+      cursor: pointer; font-size: 0.95rem;
+      transition: all 0.2s; text-align: left;
+      font-family: 'Inter', sans-serif; color: var(--text);
+    }
+    .quiz-option:hover:not(:disabled) { border-color: var(--accent); background: rgba(0,212,255,0.05); }
+    .quiz-option.correct { border-color: var(--accent3); background: rgba(16,185,129,0.1); color: var(--accent3); }
+    .quiz-option.wrong { border-color: var(--accent5); background: rgba(239,68,68,0.1); color: var(--accent5); }
+    .quiz-option:disabled { cursor: not-allowed; }
+    .quiz-feedback {
+      margin-top: 1.25rem; padding: 1rem 1.25rem;
+      border-radius: 10px; font-size: 0.9rem;
+      display: none; line-height: 1.5;
+    }
+    .quiz-feedback.show { display: block; }
+    .quiz-feedback.correct { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--accent3); }
+    .quiz-feedback.wrong { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #fca5a5; }
+    .quiz-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; }
+    .quiz-score { font-size: 0.9rem; color: var(--text3); }
+    .quiz-result {
+      text-align: center; display: none;
+    }
+    .quiz-result .big-score {
+      font-size: 4rem; font-weight: 900;
+      font-family: 'Space Grotesk',sans-serif;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .quiz-result .grade { font-size: 1.1rem; color: var(--text2); margin-top: 0.5rem; }
+    .confetti-emoji { font-size: 3rem; animation: bounce 0.5s ease infinite alternate; }
+    @keyframes bounce { from {transform: translateY(0)} to {transform: translateY(-10px)} }
+
+    /* ── TESTIMONIALS ── */
+    #testimonials { background: var(--bg); }
+    .testimonials-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem; margin-top: 3rem;
+    }
+    .testimonial-card {
+      background: var(--card); border: 1px solid var(--border2);
+      border-radius: 16px; padding: 1.75rem;
+      transition: border-color 0.3s;
+    }
+    .testimonial-card:hover { border-color: rgba(0,212,255,0.3); }
+    .stars { color: var(--accent4); font-size: 0.9rem; margin-bottom: 1rem; }
+    .testimonial-text { font-size: 0.95rem; color: var(--text2); line-height: 1.7; margin-bottom: 1.25rem; font-style: italic; }
+    .testimonial-author { display: flex; align-items: center; gap: 10px; }
+    .author-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.85rem;
+    }
+    .author-name { font-size: 0.9rem; font-weight: 600; }
+    .author-title { font-size: 0.8rem; color: var(--text3); }
+
+    /* ── CTA ── */
+    #cta {
+      background: linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(0,212,255,0.1) 100%);
+      border-top: 1px solid var(--border2);
+      text-align: center;
+    }
+    #cta .section-title { font-size: clamp(2rem, 4vw, 3rem); }
+    #cta p { font-size: 1.1rem; color: var(--text2); max-width: 500px; margin: 1rem auto 2.5rem; }
+    .cta-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .input-group { display: flex; gap: 0; max-width: 440px; width: 100%; }
+    .input-group input {
+      flex: 1; padding: 0.85rem 1.25rem;
+      border: 1px solid var(--border2); border-right: none;
+      background: rgba(255,255,255,0.05); color: var(--text);
+      border-radius: 10px 0 0 10px; font-size: 0.95rem;
+      font-family: 'Inter', sans-serif; outline: none;
+    }
+    .input-group input:focus { border-color: var(--accent); }
+    .input-group input::placeholder { color: var(--text3); }
+    .input-group button {
+      padding: 0.85rem 1.5rem;
+      background: linear-gradient(135deg, var(--accent), #0099cc);
+      color: #000; font-weight: 700; border: none; cursor: pointer;
+      border-radius: 0 10px 10px 0; font-size: 0.95rem;
+      font-family: 'Inter', sans-serif; transition: opacity 0.2s; white-space: nowrap;
+    }
+    .input-group button:hover { opacity: 0.85; }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--bg2); border-top: 1px solid var(--border2);
+      padding: 3rem 2rem 2rem;
+    }
+    .footer-inner {
+      max-width: 1200px; margin: 0 auto;
+      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 3rem;
+    }
+    .footer-brand p { font-size: 0.9rem; color: var(--text3); line-height: 1.6; margin-top: 1rem; max-width: 300px; }
+    .footer-col h4 { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text3); margin-bottom: 1rem; }
+    .footer-col a { display: block; color: var(--text2); font-size: 0.9rem; text-decoration: none; margin-bottom: 0.5rem; transition: color 0.2s; }
+    .footer-col a:hover { color: var(--accent); }
+    .footer-bottom { max-width: 1200px; margin: 2rem auto 0; padding-top: 1.5rem; border-top: 1px solid var(--border2); display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; color: var(--text3); }
+
+    /* ── SECTION INTRO TOAST ── */
+    .section-toast {
+      position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(80px);
+      z-index: 150; background: var(--bg2);
+      border: 1px solid var(--border); border-radius: 14px;
+      padding: 1rem 1.5rem; max-width: 480px; width: calc(100% - 2rem);
+      display: flex; align-items: flex-start; gap: 12px;
+      opacity: 0; transition: opacity 0.4s, transform 0.4s;
+      pointer-events: none;
+    }
+    .section-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+    .st-icon { font-size: 1.5rem; flex-shrink: 0; }
+    .st-body { flex: 1; }
+    .st-title { font-size: 0.82rem; font-weight: 700; color: var(--accent); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 1px; }
+    .st-desc { font-size: 0.88rem; color: var(--text2); line-height: 1.4; }
+    .st-close { background: none; border: none; color: var(--text3); cursor: pointer; font-size: 1.1rem; padding: 0; flex-shrink: 0; line-height: 1; }
+    .st-close:hover { color: var(--text); }
+
+    /* ── FLOATING PARTICLES ── */
+    .particle {
+      position: fixed; pointer-events: none;
+      border-radius: 50%; opacity: 0;
+      animation: floatUp 8s ease-out infinite;
+    }
+    @keyframes floatUp {
+      0% { opacity: 0; transform: translateY(0) scale(0); }
+      10% { opacity: 0.6; }
+      90% { opacity: 0.1; }
+      100% { opacity: 0; transform: translateY(-100vh) scale(1); }
+    }
+
+    /* ── MODAL ── */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+      align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 2rem; max-width: 500px; width: 100%;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: none; border: none; color: var(--text3);
+      font-size: 1.5rem; cursor: pointer; transition: color 0.2s;
+    }
+    .modal-close:hover { color: var(--text); }
+    .modal h2 { margin-bottom: 1.25rem; }
+    .module-list { list-style: none; }
+    .module-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid var(--border2);
+    }
+    .module-item:last-child { border-bottom: none; }
+    .module-icon { font-size: 1.25rem; }
+    .module-title { font-weight: 500; font-size: 0.95rem; }
+    .module-dur { font-size: 0.8rem; color: var(--text3); }
+    .module-status { margin-left: auto; }
+    .status-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; }
+    .status-free { background: rgba(16,185,129,0.15); color: var(--accent3); }
+    .status-pro { background: rgba(124,58,237,0.15); color: #a78bfa; }
+
+    /* ── SUCCESS TOAST ── */
+    .toast {
+      position: fixed; bottom: 2rem; right: 2rem; z-index: 300;
+      background: var(--accent3); color: #000; padding: 1rem 1.5rem;
+      border-radius: 12px; font-weight: 600; font-size: 0.95rem;
+      transform: translateY(100px); opacity: 0;
+      transition: all 0.4s; max-width: 300px;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ── SCROLL ANIMATIONS ── */
+    .fade-in { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 900px) {
+      .hero-content { grid-template-columns: 1fr; }
+      .explorer-layout { grid-template-columns: 1fr; }
+      .viz-layout { grid-template-columns: 1fr; }
+      .footer-inner { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    }
+    @media (max-width: 600px) {
+      .nav-links { display: none; }
+      .footer-inner { grid-template-columns: 1fr; }
+      .hero-stats { flex-direction: column; gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#">
+    <div class="logo-icon">🔬</div>
+    GeneLens <span style="color:var(--text2);font-weight:400;font-size:1rem;margin-left:2px">AI</span>
+  </a>
+  <div class="nav-links">
+    <a href="explorer.html">Gene Explorer</a>
+    <a href="learn.html">Learning Paths</a>
+    <a href="#visualizer">Visualizer</a>
+    <a href="#quiz">Quiz Mode</a>
+    <a href="#cta" class="nav-cta">Get Early Access</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div>
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Now in Beta — Join 2,400+ Students
+      </div>
+      <h1>The <span>Google Maps</span> for Cancer Genomics Learning</h1>
+      <p>Navigate the cancer genome like never before. Interactive 3D gene maps, AI-powered explanations, and gamified learning paths — making cutting-edge genomics accessible to every student.</p>
+      <div class="hero-actions">
+        <a href="explorer.html" class="btn-primary">🧬 Explore the Genome</a>
+        <a href="learn.html" class="btn-secondary">View Learning Paths →</a>
+      </div>
+      <div class="hero-stats">
+        <div class="stat"><div class="stat-num">847</div><div class="stat-label">Cancer Genes Mapped</div></div>
+        <div class="stat"><div class="stat-num">24</div><div class="stat-label">Cancer Types</div></div>
+        <div class="stat"><div class="stat-num">50K+</div><div class="stat-label">Mutations Catalogued</div></div>
+        <div class="stat"><div class="stat-num">4.9⭐</div><div class="stat-label">Student Rating</div></div>
+      </div>
+    </div>
+    <div>
+      <canvas id="dnaCanvas"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="section-inner fade-in">
+    <div class="section-tag">✦ Why GeneLens</div>
+    <h2 class="section-title">Everything you need to understand cancer genomics</h2>
+    <p class="section-sub">We take the most complex data in biology and make it feel as intuitive as navigating Google Maps.</p>
+    <div class="features-grid" style="margin-top:3rem">
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(0,212,255,0.1)">🗺️</div>
+        <h3>Interactive Gene Maps</h3>
+        <p>Navigate cancer genomes visually. Click any gene to see mutations, pathways, and cancer associations — just like dropping a pin on a map.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(124,58,237,0.1)">🤖</div>
+        <h3>AI-Powered Explanations</h3>
+        <p>Ask anything in plain English. Our AI tutor explains gene function, mutation impact, and clinical relevance at the level you need.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(16,185,129,0.1)">🎮</div>
+        <h3>Gamified Learning</h3>
+        <p>Earn XP, unlock achievements, and compete on leaderboards as you master genomics concepts through interactive challenges.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(245,158,11,0.1)">📊</div>
+        <h3>Real TCGA Data</h3>
+        <p>Explore actual mutation data from The Cancer Genome Atlas. See real patient cohort data visualized in beautiful, understandable charts.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(239,68,68,0.1)">🔬</div>
+        <h3>Pathway Visualization</h3>
+        <p>Follow the molecular cascade from mutation to cancer. Interactive signaling pathways show exactly how gene changes drive tumor growth.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon" style="background:rgba(0,212,255,0.1)">📚</div>
+        <h3>Structured Courses</h3>
+        <p>Curated learning paths from beginner biology to expert-level bioinformatics. Progress at your own pace with instant feedback.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- GENE MAP EXPLORER -->
+<section id="explorer">
+  <div class="section-inner fade-in">
+    <div class="section-tag">✦ Interactive Tool</div>
+    <h2 class="section-title">The Cancer Genome Explorer</h2>
+    <p class="section-sub">Click any gene node to explore its role in cancer. Filter by cancer type or gene function. This is your map.</p>
+    <div class="explorer-layout">
+      <div class="map-container">
+        <div class="map-toolbar">
+          <span class="map-toolbar-title">🔍 Filter by:</span>
+          <button class="filter-btn active" onclick="setFilter('all',this)">All Genes</button>
+          <button class="filter-btn" onclick="setFilter('oncogene',this)">Oncogenes</button>
+          <button class="filter-btn" onclick="setFilter('suppressor',this)">Tumor Suppressors</button>
+          <button class="filter-btn" onclick="setFilter('kinase',this)">Kinases</button>
+        </div>
+        <canvas id="geneMapCanvas" height="400"></canvas>
+        <div class="map-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div>Oncogene</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#3b82f6"></div>Tumor Suppressor</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div>Kinase</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#10b981"></div>Transcription Factor</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#8b5cf6"></div>DNA Repair</div>
+        </div>
+      </div>
+      <div class="gene-sidebar">
+        <div class="sidebar-card">
+          <h3>🧬 Gene Info Panel</h3>
+          <div id="geneInfo">
+            <div class="gene-info-placeholder">
+              <div class="big">👆</div>
+              <div>Click any gene node on the map to explore its cancer connections</div>
+            </div>
+          </div>
+        </div>
+        <div class="sidebar-card">
+          <h3>🔥 Most Mutated Genes</h3>
+          <div class="hot-genes" id="hotGenes"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- LEARNING PATHS -->
+<section id="learn">
+  <div class="section-inner fade-in">
+    <div class="section-tag">✦ Curriculum</div>
+    <h2 class="section-title">Choose your learning path</h2>
+    <p class="section-sub">Whether you're a curious freshman or a PhD student, we have a path tailored to your level.</p>
+    <div class="paths-grid">
+      <div class="path-card beginner" onclick="window.location.href='learn.html'">
+        <div class="path-level">🌱 Beginner</div>
+        <h3>Genomics Foundations</h3>
+        <p>Start from scratch. Understand DNA, genes, mutations, and why they matter in cancer — with zero jargon.</p>
+        <ul class="path-modules">
+          <li>What is DNA and why it matters</li>
+          <li>How mutations happen</li>
+          <li>Introduction to oncogenes</li>
+          <li>Cancer hallmarks explained</li>
+          <li>Your first genome navigation</li>
+        </ul>
+        <div class="path-meta">
+          <span>⏱ 4 hours</span>
+          <span>📋 12 modules</span>
+          <span>🆓 Free</span>
+        </div>
+      </div>
+      <div class="path-card intermediate" onclick="window.location.href='learn.html'">
+        <div class="path-level">⚡ Intermediate</div>
+        <h3>Cancer Genomics Deep Dive</h3>
+        <p>Explore specific cancer types, signaling pathways, and how mutations drive treatment decisions.</p>
+        <ul class="path-modules">
+          <li>Breast cancer genomics (BRCA1/2)</li>
+          <li>Lung cancer driver mutations</li>
+          <li>PI3K/AKT/mTOR pathway</li>
+          <li>Immunotherapy genomic markers</li>
+          <li>Interpreting mutation landscapes</li>
+        </ul>
+        <div class="path-meta">
+          <span>⏱ 8 hours</span>
+          <span>📋 24 modules</span>
+          <span>⭐ Pro</span>
+        </div>
+      </div>
+      <div class="path-card advanced" onclick="window.location.href='learn.html'">
+        <div class="path-level">🚀 Advanced</div>
+        <h3>Computational Oncogenomics</h3>
+        <p>Analyze real TCGA datasets, run bioinformatics pipelines, and conduct your own genomic research.</p>
+        <ul class="path-modules">
+          <li>Variant calling & annotation</li>
+          <li>Somatic vs. germline mutations</li>
+          <li>Copy number variation analysis</li>
+          <li>Tumor mutational burden</li>
+          <li>Machine learning in oncogenomics</li>
+        </ul>
+        <div class="path-meta">
+          <span>⏱ 20 hours</span>
+          <span>📋 48 modules</span>
+          <span>⭐ Pro</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MUTATION VISUALIZER -->
+<section id="visualizer">
+  <div class="section-inner fade-in">
+    <div class="section-tag">✦ Data Viz</div>
+    <h2 class="section-title">Mutation Landscape Visualizer</h2>
+    <p class="section-sub">Explore real mutation frequency data across cancer types. See which genes are most affected — powered by TCGA data.</p>
+    <div class="viz-layout">
+      <div class="viz-card">
+        <h3>Top Mutated Genes by Cancer Type</h3>
+        <div class="cancer-selector">
+          <button class="cancer-btn active" onclick="updateChart('brca',this)">Breast</button>
+          <button class="cancer-btn" onclick="updateChart('luad',this)">Lung</button>
+          <button class="cancer-btn" onclick="updateChart('coad',this)">Colon</button>
+          <button class="cancer-btn" onclick="updateChart('gbm',this)">Brain</button>
+          <button class="cancer-btn" onclick="updateChart('prad',this)">Prostate</button>
+        </div>
+        <div style="position:relative;height:280px">
+          <canvas id="mutChart" role="img" aria-label="Bar chart showing mutation frequencies for top genes">Mutation frequency data for selected cancer type.</canvas>
+        </div>
+      </div>
+      <div class="viz-card">
+        <h3>Mutation Types Distribution</h3>
+        <div style="display:flex;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:2px;background:#ef4444;display:inline-block"></span>Missense 47%</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:2px;background:#3b82f6;display:inline-block"></span>Nonsense 18%</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:2px;background:#f59e0b;display:inline-block"></span>Frameshift 15%</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:2px;background:#10b981;display:inline-block"></span>Splice Site 12%</span>
+          <span style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--text2)"><span style="width:10px;height:10px;border-radius:2px;background:#8b5cf6;display:inline-block"></span>Other 8%</span>
+        </div>
+        <div style="position:relative;height:280px">
+          <canvas id="typeChart" role="img" aria-label="Donut chart of mutation type distribution">Missense 47%, Nonsense 18%, Frameshift 15%, Splice Site 12%, Other 8%.</canvas>
+        </div>
+      </div>
+      <div class="viz-card" style="grid-column:1/-1">
+        <h3>Cancer Gene Mutation Frequency Across All Types</h3>
+        <div style="position:relative;height:220px">
+          <canvas id="overviewChart" role="img" aria-label="Multi-type bar chart comparing mutation rates across cancer types">Mutation rate comparison across cancer types for key genes.</canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="section-inner fade-in">
+    <div class="section-tag">✦ Test Yourself</div>
+    <h2 class="section-title">Genomics Knowledge Quiz</h2>
+    <p class="section-sub">Think you know your oncogenes from your tumor suppressors? Test your skills!</p>
+    <div class="quiz-container">
+      <div class="quiz-progress" id="quizProgress"></div>
+      <div id="quizBody">
+        <div class="quiz-q-num" id="quizQNum"></div>
+        <div class="quiz-question" id="quizQuestion"></div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div class="quiz-feedback" id="quizFeedback"></div>
+        <div class="quiz-actions">
+          <div class="quiz-score" id="quizScore">Score: 0 / 0</div>
+          <button class="btn-primary" id="quizNext" style="display:none;padding:0.6rem 1.5rem;font-size:0.9rem" onclick="nextQuestion()">Next Question →</button>
+        </div>
+      </div>
+      <div class="quiz-result" id="quizResult">
+        <div class="confetti-emoji">🎉</div>
+        <div class="big-score" id="finalScore">0/7</div>
+        <div class="grade" id="finalGrade"></div>
+        <p style="color:var(--text2);margin:1rem 0;font-size:0.95rem">Keep exploring the genome to improve your score!</p>
+        <button class="btn-primary" onclick="restartQuiz()" style="margin-top:0.5rem">🔄 Try Again</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section id="testimonials">
+  <div class="section-inner fade-in">
+    <div class="section-tag">✦ Student Love</div>
+    <h2 class="section-title">What students are saying</h2>
+    <p class="section-sub">From biology undergrads to medical students — GeneLens is changing how genomics is learned.</p>
+    <div class="testimonials-grid">
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"I finally understand the difference between oncogenes and tumor suppressors. The interactive map makes everything click in a way textbooks never could."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar" style="background:rgba(0,212,255,0.15);color:var(--accent)">SK</div>
+          <div><div class="author-name">Sarah Kim</div><div class="author-title">Biology Junior, Johns Hopkins</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"As a med student, I have to know KRAS, BRCA, TP53... GeneLens makes memorizing these feel like playing a game. My board score prep has never been more effective."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar" style="background:rgba(124,58,237,0.15);color:#a78bfa">MR</div>
+          <div><div class="author-name">Marcus Rodriguez</div><div class="author-title">MD Candidate, UCLA</div></div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-text">"I teach intro genomics and I recommend GeneLens to every student. The TCGA data visualizations are incredible for showing real-world relevance."</p>
+        <div class="testimonial-author">
+          <div class="author-avatar" style="background:rgba(16,185,129,0.15);color:var(--accent3)">DL</div>
+          <div><div class="author-name">Dr. Diana Liu</div><div class="author-title">Prof. of Molecular Biology, Stanford</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="section-inner fade-in" style="text-align:center">
+    <div class="section-tag" style="text-align:center">✦ Get Started Free</div>
+    <h2 class="section-title">Ready to navigate the cancer genome?</h2>
+    <p>Join thousands of students exploring genomics through the most interactive platform ever built. Free forever for learners.</p>
+    <div style="display:flex;justify-content:center">
+      <div class="input-group">
+        <input type="email" id="emailInput" placeholder="Enter your university email" />
+        <button onclick="handleSignup()">Get Early Access 🚀</button>
+      </div>
+    </div>
+    <p style="font-size:0.8rem;color:var(--text3);margin-top:1rem">No credit card required. Free for students forever.</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-brand">
+      <div class="logo">
+        <div class="logo-icon">🔬</div>
+        GeneLens AI
+      </div>
+      <p>Making cancer genomics education accessible to every student in the world. Navigate the genome. Understand cancer. Save lives.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#explorer">Gene Explorer</a>
+      <a href="#learn">Learning Paths</a>
+      <a href="#visualizer">Mutation Viz</a>
+      <a href="#quiz">Quiz Mode</a>
+    </div>
+    <div class="footer-col">
+      <h4>Resources</h4>
+      <a href="#">TCGA Database</a>
+      <a href="#">Research Papers</a>
+      <a href="#">API Docs</a>
+      <a href="#">Blog</a>
+    </div>
+    <div class="footer-col">
+      <h4>Company</h4>
+      <a href="#">About</a>
+      <a href="#">Team</a>
+      <a href="#">Careers</a>
+      <a href="#">Contact</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 GeneLens AI, Inc. All rights reserved.</span>
+    <div style="display:flex;gap:1.5rem">
+      <a href="#" style="color:var(--text3);text-decoration:none">Privacy</a>
+      <a href="#" style="color:var(--text3);text-decoration:none">Terms</a>
+    </div>
+  </div>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h2 id="modalTitle" style="margin-bottom:0.5rem"></h2>
+    <p id="modalDesc" style="color:var(--text2);font-size:0.9rem;margin-bottom:1.5rem"></p>
+    <ul class="module-list" id="modalModules"></ul>
+    <button class="btn-primary" style="width:100%;margin-top:1.5rem;text-align:center" onclick="closeModal()">🚀 Start Learning</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- SECTION INTRO TOAST -->
+<div class="section-toast" id="sectionToast">
+  <div class="st-icon" id="stIcon"></div>
+  <div class="st-body">
+    <div class="st-title" id="stTitle"></div>
+    <div class="st-desc" id="stDesc"></div>
+  </div>
+  <button class="st-close" onclick="dismissSectionToast()">✕</button>
+</div>
+
+<script>
+// ── DNA HELIX ANIMATION ──
+const dnaCanvas = document.getElementById('dnaCanvas');
+const ctx = dnaCanvas.getContext('2d');
+let dnaFrame = 0;
+
+function resizeDNA() {
+  dnaCanvas.width = dnaCanvas.offsetWidth;
+  dnaCanvas.height = dnaCanvas.offsetHeight;
+}
+resizeDNA();
+window.addEventListener('resize', resizeDNA);
+
+function drawDNA() {
+  const w = dnaCanvas.width, h = dnaCanvas.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(10,22,40,0.3)';
+  ctx.fillRect(0, 0, w, h);
+  const cx = w / 2, t = dnaFrame * 0.02;
+  const numSteps = 40, amp = w * 0.28;
+  const colors1 = ['#00d4ff', '#0099cc', '#00b4d8'];
+  const colors2 = ['#7c3aed', '#9b59b6', '#a78bfa'];
+  // Draw backdrop glow
+  for (let i = 0; i < numSteps - 1; i++) {
+    const y1 = (i / numSteps) * h, y2 = ((i + 1) / numSteps) * h;
+    const x1a = cx + Math.sin(i * 0.4 + t) * amp;
+    const x1b = cx + Math.sin(i * 0.4 + t + Math.PI) * amp;
+    const x2a = cx + Math.sin((i+1) * 0.4 + t) * amp;
+    const x2b = cx + Math.sin((i+1) * 0.4 + t + Math.PI) * amp;
+    ctx.beginPath();
+    ctx.moveTo(x1a, y1); ctx.lineTo(x2a, y2);
+    ctx.strokeStyle = colors1[i % 3];
+    ctx.lineWidth = 3; ctx.globalAlpha = 0.7;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x1b, y1); ctx.lineTo(x2b, y2);
+    ctx.strokeStyle = colors2[i % 3];
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    if (i % 4 === 0) {
+      ctx.beginPath();
+      ctx.moveTo(x1a, y1); ctx.lineTo(x1b, y1);
+      ctx.strokeStyle = 'rgba(255,255,255,0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+      const mx = (x1a + x1b) / 2;
+      const bp = ['A-T','G-C','T-A','C-G'][Math.floor((i/4)) % 4];
+      ctx.globalAlpha = 0.6;
+      ctx.fillStyle = '#94a3b8'; ctx.font = '10px Inter'; ctx.textAlign = 'center';
+      ctx.fillText(bp, mx, y1 - 4);
+    }
+  }
+  // Nodes (base pairs)
+  for (let i = 0; i < numSteps; i++) {
+    const y = (i / numSteps) * h;
+    const xa = cx + Math.sin(i * 0.4 + t) * amp;
+    const xb = cx + Math.sin(i * 0.4 + t + Math.PI) * amp;
+    [[xa, colors1], [xb, colors2]].forEach(([x, cols]) => {
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.arc(x, y, 5, 0, Math.PI * 2);
+      ctx.fillStyle = cols[i % 3];
+      ctx.fill();
+      ctx.globalAlpha = 0.2;
+      ctx.beginPath();
+      ctx.arc(x, y, 10, 0, Math.PI * 2);
+      ctx.fillStyle = cols[0];
+      ctx.fill();
+    });
+  }
+  ctx.globalAlpha = 1;
+  dnaFrame++;
+  requestAnimationFrame(drawDNA);
+}
+drawDNA();
+
+// ── GENE MAP ──
+const geneMapCanvas = document.getElementById('geneMapCanvas');
+const mc = geneMapCanvas.getContext('2d');
+let activeFilter = 'all';
+let selectedGene = null;
+let hoveredGene = null;
+let animFrame = 0;
+
+const GENE_DATA = [
+  { id:'TP53', x:0.5, y:0.45, type:'suppressor', cancer:['BRCA','LUAD','COAD','GBM'], mutRate:35, desc:'Master guardian of the genome. Triggers apoptosis when DNA is damaged. Mutated in >50% of all cancers.', function:'Transcription factor / tumor suppressor', pathway:'DNA Damage Response', color:'#3b82f6' },
+  { id:'KRAS', x:0.22, y:0.3, type:'oncogene', cancer:['LUAD','COAD','PAAD'], mutRate:28, desc:'Constitutively activates cell proliferation signaling. A major driver in lung, colon, and pancreatic cancers.', function:'GTPase / proto-oncogene', pathway:'RAS/MAPK signaling', color:'#ef4444' },
+  { id:'PIK3CA', x:0.75, y:0.25, type:'oncogene', cancer:['BRCA','COAD','UCEC'], mutRate:22, desc:'Activates PI3K/AKT pathway, driving cell growth and survival. Among the most commonly mutated genes in breast cancer.', function:'Kinase (PI3K catalytic subunit)', pathway:'PI3K/AKT/mTOR', color:'#f59e0b' },
+  { id:'BRCA1', x:0.15, y:0.6, type:'suppressor', cancer:['BRCA','OV'], mutRate:15, desc:'DNA repair protein critical for maintaining genome stability. Inherited mutations confer high breast and ovarian cancer risk.', function:'DNA repair / tumor suppressor', pathway:'Homologous Recombination', color:'#3b82f6' },
+  { id:'BRCA2', x:0.85, y:0.65, type:'suppressor', cancer:['BRCA','OV','PAAD'], mutRate:12, desc:'Works with BRCA1 to repair double-strand DNA breaks. Mutations dramatically increase lifetime cancer risk.', function:'DNA repair / tumor suppressor', pathway:'Homologous Recombination', color:'#3b82f6' },
+  { id:'EGFR', x:0.35, y:0.15, type:'kinase', cancer:['LUAD','GBM'], mutRate:18, desc:'Growth factor receptor that activates cell division. Activating mutations or amplifications are targets for drugs like Erlotinib.', function:'Receptor tyrosine kinase', pathway:'RAS/MAPK, PI3K/AKT', color:'#f59e0b' },
+  { id:'MYC', x:0.62, y:0.72, type:'oncogene', cancer:['DLBC','BRCA','LUAD'], mutRate:20, desc:'Transcription factor amplified in many cancers. Drives cell cycle entry and metabolic reprogramming in tumors.', function:'Transcription factor / oncogene', pathway:'Cell cycle, metabolism', color:'#ef4444' },
+  { id:'PTEN', x:0.28, y:0.78, type:'suppressor', cancer:['GBM','BRCA','PRAD'], mutRate:17, desc:'Phosphatase that opposes the PI3K pathway. Loss of PTEN leads to unchecked AKT signaling and tumor growth.', function:'Phosphatase / tumor suppressor', pathway:'PI3K/AKT/mTOR', color:'#3b82f6' },
+  { id:'BRAF', x:0.82, y:0.42, type:'kinase', cancer:['SKCM','THCA','COAD'], mutRate:14, desc:'Serine/threonine kinase in the MAPK pathway. The V600E mutation is a major target in melanoma (Vemurafenib).', function:'Serine/threonine kinase', pathway:'RAS/MAPK signaling', color:'#f59e0b' },
+  { id:'CDH1', x:0.45, y:0.88, type:'suppressor', cancer:['STAD','BRCA'], mutRate:8, desc:'Encodes E-cadherin, a cell adhesion molecule. Loss promotes epithelial-to-mesenchymal transition and metastasis.', function:'Cell adhesion / tumor suppressor', pathway:'Wnt / EMT signaling', color:'#3b82f6' },
+  { id:'APC', x:0.08, y:0.22, type:'suppressor', cancer:['COAD'], mutRate:70, desc:'Major gatekeeper in colorectal cancer. Inactivation is an early, initiating event in >80% of colon tumors.', function:'Wnt pathway regulator', pathway:'Wnt/β-catenin signaling', color:'#3b82f6' },
+  { id:'RB1', x:0.68, y:0.12, type:'suppressor', cancer:['BLCA','LUSC','SCLC'], mutRate:13, desc:'The original tumor suppressor. Discovered in retinoblastoma; controls cell cycle checkpoint at G1/S transition.', function:'Cell cycle regulator', pathway:'Cell cycle (RB/E2F pathway)', color:'#3b82f6' },
+  { id:'ALK', x:0.55, y:0.28, type:'kinase', cancer:['LUAD','ALCL'], mutRate:5, desc:'Receptor tyrosine kinase. EML4-ALK fusion is a targetable driver in ~5% of non-small cell lung cancers (Crizotinib).', function:'Receptor tyrosine kinase', pathway:'JAK/STAT, RAS/MAPK', color:'#f59e0b' },
+  { id:'FOXO3', x:0.92, y:0.8, type:'other', cancer:['AML','BRCA'], mutRate:4, desc:'Transcription factor regulated by AKT. Controls apoptosis, stress resistance, and cell cycle arrest.', function:'Transcription factor / tumor suppressor', pathway:'PI3K/AKT/FOXO', color:'#10b981' },
+  { id:'MLH1', x:0.12, y:0.88, type:'other', cancer:['COAD','UCEC'], mutRate:9, desc:'DNA mismatch repair gene. Silencing causes microsatellite instability (MSI-H) — a key immunotherapy biomarker.', function:'DNA mismatch repair', pathway:'DNA Damage Repair', color:'#8b5cf6' },
+];
+
+const typeMap = {
+  oncogene: 'red',
+  suppressor: 'blue',
+  kinase: 'amber',
+  tf: 'green',
+  repair: 'purple',
+  other: 'green'
+};
+
+function geneVisible(g) {
+  if (activeFilter === 'all') return true;
+  if (activeFilter === 'oncogene') return g.type === 'oncogene';
+  if (activeFilter === 'suppressor') return g.type === 'suppressor';
+  if (activeFilter === 'kinase') return g.type === 'kinase';
+  return true;
+}
+
+function setFilter(f, btn) {
+  activeFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function resizeGeneMap() {
+  geneMapCanvas.width = geneMapCanvas.offsetWidth;
+  geneMapCanvas.height = 400;
+}
+resizeGeneMap();
+window.addEventListener('resize', resizeGeneMap);
+
+function drawGeneMap() {
+  const w = geneMapCanvas.width, h = geneMapCanvas.height;
+  mc.clearRect(0, 0, w, h);
+  mc.fillStyle = 'rgba(10,22,40,0.5)';
+  mc.fillRect(0, 0, w, h);
+  // Grid
+  mc.strokeStyle = 'rgba(0,212,255,0.05)';
+  mc.lineWidth = 1;
+  for (let x = 0; x < w; x += 50) { mc.beginPath(); mc.moveTo(x,0); mc.lineTo(x,h); mc.stroke(); }
+  for (let y = 0; y < h; y += 50) { mc.beginPath(); mc.moveTo(0,y); mc.lineTo(w,y); mc.stroke(); }
+  // Connections
+  GENE_DATA.forEach(g => {
+    if (!geneVisible(g)) return;
+    GENE_DATA.forEach(g2 => {
+      if (g.id >= g2.id || !geneVisible(g2)) return;
+      const shared = g.cancer.filter(c => g2.cancer.includes(c));
+      if (shared.length === 0) return;
+      const gx = g.x * w, gy = g.y * h;
+      const g2x = g2.x * w, g2y = g2.y * h;
+      mc.beginPath();
+      mc.moveTo(gx, gy); mc.lineTo(g2x, g2y);
+      mc.strokeStyle = `rgba(0,212,255,${shared.length * 0.06})`;
+      mc.lineWidth = shared.length;
+      mc.stroke();
+    });
+  });
+  // Nodes
+  GENE_DATA.forEach(g => {
+    const visible = geneVisible(g);
+    const gx = g.x * w, gy = g.y * h;
+    const selected = selectedGene && selectedGene.id === g.id;
+    const hovered = hoveredGene && hoveredGene.id === g.id;
+    const r = selected ? 18 : (hovered ? 16 : 12);
+    const alpha = visible ? 1 : 0.15;
+    // Glow
+    if (visible && (selected || hovered)) {
+      mc.beginPath();
+      mc.arc(gx, gy, r + 10, 0, Math.PI * 2);
+      mc.fillStyle = g.color + '33';
+      mc.fill();
+    }
+    mc.globalAlpha = alpha;
+    mc.beginPath();
+    mc.arc(gx, gy, r, 0, Math.PI * 2);
+    mc.fillStyle = g.color;
+    mc.fill();
+    if (selected) {
+      mc.strokeStyle = '#fff';
+      mc.lineWidth = 2;
+      mc.stroke();
+    }
+    // Label
+    mc.fillStyle = visible ? '#e2e8f0' : '#64748b';
+    mc.font = `${selected ? '700 ' : '500 '}11px Inter`;
+    mc.textAlign = 'center';
+    mc.fillText(g.id, gx, gy + r + 14);
+    mc.globalAlpha = 1;
+  });
+  // Pulse on selected
+  if (selectedGene && geneVisible(selectedGene)) {
+    const gx = selectedGene.x * w, gy = selectedGene.y * h;
+    const pulsR = 20 + Math.sin(animFrame * 0.08) * 5;
+    mc.beginPath();
+    mc.arc(gx, gy, pulsR, 0, Math.PI * 2);
+    mc.strokeStyle = selectedGene.color + '66';
+    mc.lineWidth = 2;
+    mc.stroke();
+  }
+  animFrame++;
+  requestAnimationFrame(drawGeneMap);
+}
+drawGeneMap();
+
+geneMapCanvas.addEventListener('mousemove', e => {
+  const rect = geneMapCanvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) / rect.width * geneMapCanvas.width;
+  const my = (e.clientY - rect.top) / rect.height * geneMapCanvas.height;
+  hoveredGene = null;
+  GENE_DATA.forEach(g => {
+    if (!geneVisible(g)) return;
+    const gx = g.x * geneMapCanvas.width, gy = g.y * geneMapCanvas.height;
+    if (Math.hypot(mx - gx, my - gy) < 20) { hoveredGene = g; geneMapCanvas.style.cursor = 'pointer'; }
+  });
+  if (!hoveredGene) geneMapCanvas.style.cursor = 'crosshair';
+});
+
+geneMapCanvas.addEventListener('click', e => {
+  const rect = geneMapCanvas.getBoundingClientRect();
+  const mx = (e.clientX - rect.left) / rect.width * geneMapCanvas.width;
+  const my = (e.clientY - rect.top) / rect.height * geneMapCanvas.height;
+  let found = null;
+  GENE_DATA.forEach(g => {
+    if (!geneVisible(g)) return;
+    const gx = g.x * geneMapCanvas.width, gy = g.y * geneMapCanvas.height;
+    if (Math.hypot(mx - gx, my - gy) < 22) found = g;
+  });
+  if (found) {
+    selectedGene = found;
+    showGeneInfo(found);
+  }
+});
+
+function showGeneInfo(g) {
+  const panel = document.getElementById('geneInfo');
+  const typeLabels = { oncogene:'Oncogene', suppressor:'Tumor Suppressor', kinase:'Kinase', other:'Other' };
+  const typeBgs = { oncogene:'rgba(239,68,68,0.15)', suppressor:'rgba(59,130,246,0.15)', kinase:'rgba(245,158,11,0.15)', other:'rgba(16,185,129,0.15)' };
+  const typeCols = { oncogene:'#fca5a5', suppressor:'#93c5fd', kinase:'#fcd34d', other:'#6ee7b7' };
+  panel.innerHTML = `
+    <div>
+      <div class="gene-name" style="color:${g.color}">${g.id}</div>
+      <span class="gene-type-badge" style="background:${typeBgs[g.type]||typeBgs.other};color:${typeCols[g.type]||typeCols.other}">${typeLabels[g.type]||'Other'}</span>
+      <div class="gene-field">
+        <div class="gene-field-label">Description</div>
+        <div class="gene-field-val" style="font-size:0.82rem;color:var(--text2)">${g.desc}</div>
+      </div>
+      <div class="gene-field">
+        <div class="gene-field-label">Function</div>
+        <div class="gene-field-val" style="font-size:0.85rem">${g.function}</div>
+      </div>
+      <div class="gene-field">
+        <div class="gene-field-label">Key Pathway</div>
+        <div class="gene-field-val" style="font-size:0.85rem;color:${g.color}">${g.pathway}</div>
+      </div>
+      <div class="gene-field">
+        <div class="gene-field-label">Associated Cancers</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;margin-top:4px">${g.cancer.map(c => `<span style="background:rgba(0,212,255,0.1);color:var(--accent);border:1px solid rgba(0,212,255,0.2);border-radius:4px;padding:2px 8px;font-size:0.72rem;font-weight:600">${c}</span>`).join('')}</div>
+      </div>
+      <div class="gene-field">
+        <div class="gene-field-label">Avg. Mutation Rate — ${g.mutRate}%</div>
+        <div class="mutation-bar"><div class="mutation-fill" style="width:${g.mutRate}%;background:${g.color}"></div></div>
+      </div>
+    </div>`;
+}
+
+// Hot genes list
+const hotGenes = [...GENE_DATA].sort((a,b) => b.mutRate - a.mutRate).slice(0, 6);
+const hotGenesEl = document.getElementById('hotGenes');
+hotGenes.forEach(g => {
+  const el = document.createElement('div');
+  el.className = 'hot-gene';
+  el.innerHTML = `<div class="hot-gene-dot" style="background:${g.color}"></div><div class="hot-gene-name">${g.id}</div><div class="hot-gene-count">${g.mutRate}% mutation rate</div>`;
+  el.addEventListener('click', () => { selectedGene = g; showGeneInfo(g); document.getElementById('explorer').scrollIntoView({behavior:'smooth'}); });
+  hotGenesEl.appendChild(el);
+});
+
+// ── CHARTS ──
+const mutationData = {
+  brca: { labels:['PIK3CA','TP53','CDH1','GATA3','MAP3K1','MLL3','PTEN','MAP2K4'], data:[35,29,15,11,10,10,9,9] },
+  luad: { labels:['TP53','KRAS','EGFR','STK11','KEAP1','NF1','BRAF','MET'], data:[49,28,18,17,13,11,10,8] },
+  coad: { labels:['APC','TP53','KRAS','PIK3CA','SMAD4','FBXW7','BRAF','NRAS'], data:[76,61,40,20,14,12,11,9] },
+  gbm:  { labels:['PTEN','TP53','EGFR','IDH1','RB1','PIK3CA','NF1','PIK3R1'], data:[41,35,25,16,11,10,9,8] },
+  prad: { labels:['SPOP','FOXA1','TP53','CDH1','MED12','APC','PTEN','ZBTB16'], data:[15,12,11,8,7,6,5,5] },
+};
+
+let mutChart = null;
+function updateChart(type, btn) {
+  document.querySelectorAll('.cancer-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const d = mutationData[type];
+  if (mutChart) { mutChart.destroy(); }
+  mutChart = new Chart(document.getElementById('mutChart'), {
+    type: 'bar',
+    data: {
+      labels: d.labels,
+      datasets: [{ label: 'Mutation %', data: d.data, backgroundColor: '#7c3aed88', borderColor: '#7c3aed', borderWidth: 1, borderRadius: 4 }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true, ticks: { color: '#94a3b8', callback: v => v+'%' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+        x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } }
+      }
+    }
+  });
+}
+updateChart('brca', document.querySelector('.cancer-btn.active'));
+
+new Chart(document.getElementById('typeChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Missense','Nonsense','Frameshift','Splice Site','Other'],
+    datasets: [{ data:[47,18,15,12,8], backgroundColor:['#ef4444','#3b82f6','#f59e0b','#10b981','#8b5cf6'], borderWidth: 0, hoverOffset: 4 }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '65%',
+    plugins: { legend: { display: false } }
+  }
+});
+
+new Chart(document.getElementById('overviewChart'), {
+  type: 'bar',
+  data: {
+    labels: ['TP53','PIK3CA','KRAS','PTEN','BRCA1','EGFR','MYC','APC'],
+    datasets: [
+      { label: 'Breast', data:[29,35,5,9,15,3,12,4], backgroundColor:'#ef444488', borderColor:'#ef4444', borderWidth:1 },
+      { label: 'Lung', data:[49,12,28,4,3,18,8,2], backgroundColor:'#3b82f688', borderColor:'#3b82f6', borderWidth:1 },
+      { label: 'Colon', data:[61,20,40,5,2,2,10,76], backgroundColor:'#10b98188', borderColor:'#10b981', borderWidth:1 },
+      { label: 'Brain', data:[35,10,3,41,2,25,7,3], backgroundColor:'#f59e0b88', borderColor:'#f59e0b', borderWidth:1 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { labels: { color: '#94a3b8', boxWidth: 10, font: { size: 11 } } } },
+    scales: {
+      y: { beginAtZero: true, ticks: { color: '#94a3b8', callback: v => v+'%' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+      x: { ticks: { color: '#94a3b8', font: { size: 10 } }, grid: { display: false } }
+    }
+  }
+});
+
+// ── QUIZ ──
+const questions = [
+  { q: 'Which gene is known as the "guardian of the genome" and is mutated in over 50% of all human cancers?', opts: ['BRCA1','TP53','KRAS','MYC'], correct: 1, explanation: 'TP53 encodes p53, a transcription factor that triggers apoptosis and cell cycle arrest in response to DNA damage. Loss of p53 function allows mutated cells to survive and proliferate.' },
+  { q: 'Oncogenes promote cancer by causing cells to:', opts: ['Stop dividing','Repair DNA faster','Divide uncontrollably','Trigger apoptosis'], correct: 2, explanation: 'Oncogenes are mutant versions of normal proto-oncogenes that gain activity, driving cells to proliferate even without external growth signals.' },
+  { q: 'KRAS is most commonly mutated in which cancer type?', opts: ['Breast cancer','Pancreatic cancer','Skin melanoma','Prostate cancer'], correct: 1, explanation: 'KRAS is mutated in approximately 90% of pancreatic ductal adenocarcinomas, making it the dominant driver mutation. It is also common in colon and lung cancers.' },
+  { q: 'What does the term "loss of heterozygosity" (LOH) typically indicate in tumor suppressor genes?', opts: ['Gain of a new mutation','Loss of both functional copies','Amplification of the gene','Silencing by methylation only'], correct: 1, explanation: 'Knudson\'s "two-hit hypothesis" states that both copies of a tumor suppressor must be inactivated. LOH describes the loss of the remaining wild-type copy, completing inactivation.' },
+  { q: 'Which pathway does PIK3CA activate when mutated in cancer?', opts: ['Wnt/β-catenin','RAS/MAPK','PI3K/AKT/mTOR','JAK/STAT'], correct: 2, explanation: 'PIK3CA encodes the catalytic subunit p110α of PI3K. Activating mutations increase PIP3 production, activating AKT and mTOR to drive cell growth and survival.' },
+  { q: 'BRCA1 and BRCA2 are involved primarily in:', opts: ['Cell adhesion','Homologous recombination DNA repair','Protein synthesis','RNA transcription'], correct: 1, explanation: 'BRCA1 and BRCA2 are critical for repairing double-strand DNA breaks via homologous recombination. Their loss leads to genomic instability and increased cancer risk.' },
+  { q: 'Microsatellite instability (MSI-H) is caused by defects in which DNA repair pathway?', opts: ['Base excision repair','Nucleotide excision repair','Mismatch repair','Homologous recombination'], correct: 2, explanation: 'MSI-H results from defects in mismatch repair genes (MLH1, MSH2, MSH6, PMS2). MSI-H tumors have high neoantigen load and respond well to immune checkpoint inhibitors.' },
+];
+
+let qIdx = 0, score = 0, answered = false;
+function initQuiz() {
+  qIdx = 0; score = 0; answered = false;
+  document.getElementById('quizResult').style.display = 'none';
+  document.getElementById('quizBody').style.display = 'block';
+  renderQuestion();
+}
+function renderQuestion() {
+  const q = questions[qIdx];
+  // Progress
+  const prog = document.getElementById('quizProgress');
+  prog.innerHTML = questions.map((_,i) => `<div class="quiz-dot ${i<qIdx?'done':i===qIdx?'current':''}"></div>`).join('');
+  document.getElementById('quizQNum').textContent = `Question ${qIdx+1} of ${questions.length}`;
+  document.getElementById('quizQuestion').textContent = q.q;
+  document.getElementById('quizScore').textContent = `Score: ${score} / ${qIdx}`;
+  document.getElementById('quizNext').style.display = 'none';
+  document.getElementById('quizFeedback').className = 'quiz-feedback';
+  document.getElementById('quizFeedback').textContent = '';
+  answered = false;
+  const opts = document.getElementById('quizOptions');
+  opts.innerHTML = q.opts.map((o,i) => `<button class="quiz-option" onclick="answer(${i})">${o}</button>`).join('');
+}
+function answer(i) {
+  if (answered) return;
+  answered = true;
+  const q = questions[qIdx];
+  const btns = document.querySelectorAll('.quiz-option');
+  btns.forEach(b => b.disabled = true);
+  const correct = i === q.correct;
+  if (correct) score++;
+  btns[i].className = 'quiz-option ' + (correct ? 'correct' : 'wrong');
+  btns[q.correct].className = 'quiz-option correct';
+  const fb = document.getElementById('quizFeedback');
+  fb.className = 'quiz-feedback show ' + (correct ? 'correct' : 'wrong');
+  fb.innerHTML = (correct ? '✅ Correct! ' : '❌ Not quite. ') + q.explanation;
+  document.getElementById('quizScore').textContent = `Score: ${score} / ${qIdx+1}`;
+  document.getElementById('quizNext').style.display = 'block';
+}
+function nextQuestion() {
+  qIdx++;
+  if (qIdx >= questions.length) {
+    document.getElementById('quizBody').style.display = 'none';
+    document.getElementById('quizResult').style.display = 'block';
+    document.getElementById('finalScore').textContent = `${score}/${questions.length}`;
+    const pct = score / questions.length;
+    let grade = '';
+    if (pct === 1) grade = '🏆 Perfect Score! You are a genomics genius!';
+    else if (pct >= 0.8) grade = '🌟 Excellent! You really know your cancer genomics.';
+    else if (pct >= 0.6) grade = '👍 Good work! Keep exploring to master the concepts.';
+    else grade = '📚 Keep learning! The gene map is your friend.';
+    document.getElementById('finalGrade').textContent = grade;
+  } else {
+    renderQuestion();
+  }
+}
+function restartQuiz() { initQuiz(); }
+initQuiz();
+
+// ── MODAL ──
+const modalData = {
+  beginner: {
+    title: '🌱 Genomics Foundations',
+    desc: 'Perfect for high school seniors, college freshmen, or anyone curious about cancer biology.',
+    modules: [
+      { icon:'🧬', title:'DNA, Genes, and the Genome', dur:'20 min', free:true },
+      { icon:'🔄', title:'How Mutations Happen', dur:'25 min', free:true },
+      { icon:'🚀', title:'Introduction to Oncogenes', dur:'30 min', free:true },
+      { icon:'🛡️', title:'Tumor Suppressors Explained', dur:'30 min', free:true },
+      { icon:'🔬', title:'The Hallmarks of Cancer', dur:'45 min', free:true },
+      { icon:'🗺️', title:'Your First Genome Navigation', dur:'20 min', free:true },
+    ]
+  },
+  intermediate: {
+    title: '⚡ Cancer Genomics Deep Dive',
+    desc: 'For students with basic biology knowledge ready to explore real cancer mutations.',
+    modules: [
+      { icon:'🎀', title:'Breast Cancer Genomics (BRCA1/2)', dur:'60 min', free:false },
+      { icon:'🫁', title:'Lung Cancer Driver Mutations', dur:'55 min', free:false },
+      { icon:'⚙️', title:'PI3K/AKT/mTOR Pathway', dur:'70 min', free:false },
+      { icon:'💉', title:'Immunotherapy Genomic Markers', dur:'65 min', free:false },
+      { icon:'📊', title:'Reading Mutation Landscapes', dur:'50 min', free:false },
+    ]
+  },
+  advanced: {
+    title: '🚀 Computational Oncogenomics',
+    desc: 'For advanced students and researchers ready to work with real genomics data and tools.',
+    modules: [
+      { icon:'💻', title:'Variant Calling & Annotation', dur:'90 min', free:false },
+      { icon:'🧫', title:'Somatic vs Germline Mutations', dur:'75 min', free:false },
+      { icon:'📈', title:'Copy Number Variation Analysis', dur:'80 min', free:false },
+      { icon:'🔢', title:'Tumor Mutational Burden (TMB)', dur:'60 min', free:false },
+      { icon:'🤖', title:'ML in Oncogenomics', dur:'120 min', free:false },
+    ]
+  }
+};
+
+function openModal(type) {
+  const d = modalData[type];
+  document.getElementById('modalTitle').textContent = d.title;
+  document.getElementById('modalDesc').textContent = d.desc;
+  document.getElementById('modalModules').innerHTML = d.modules.map(m => `
+    <li class="module-item">
+      <span class="module-icon">${m.icon}</span>
+      <div>
+        <div class="module-title">${m.title}</div>
+        <div class="module-dur">${m.dur}</div>
+      </div>
+      <span class="module-status"><span class="status-badge ${m.free?'status-free':'status-pro'}">${m.free?'Free':'Pro'}</span></span>
+    </li>`).join('');
+  document.getElementById('modalOverlay').classList.add('open');
+}
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modalOverlay')) {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+}
+
+// ── SIGNUP ──
+function handleSignup() {
+  const email = document.getElementById('emailInput').value;
+  if (!email || !email.includes('@')) {
+    showToast('⚠️ Please enter a valid email address.');
+    return;
+  }
+  document.getElementById('emailInput').value = '';
+  showToast('🎉 You\'re on the waitlist! Check your inbox for early access.');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 4000);
+}
+
+// ── SECTION INTRO TOASTS ──
+const SECTION_INTROS = {
+  'features':    { icon:'✨', title:'Why GeneLens?', desc:'See the six core features that make GeneLens the best way to learn cancer genomics — and how each one connects to real patient care.' },
+  'explorer':    { icon:'🗺️', title:'Interactive Gene Map', desc:'This is your genome map. Click any gene node to instantly see what it does, what cancers it drives, and which drugs target it.' },
+  'learn':       { icon:'📚', title:'Learning Paths', desc:'Three levels: Beginner, Intermediate, and Advanced. Click any card to jump straight into the full course — 11 lessons are free.' },
+  'visualizer':  { icon:'📊', title:'Real Cancer Data', desc:'Every chart here comes from The Cancer Genome Atlas (TCGA) — real tumors, real patients. Switch cancer types to explore different mutation landscapes.' },
+  'quiz':        { icon:'🧠', title:'Test Your Knowledge', desc:'Answer 7 questions about cancer genomics. Get instant explanations for every answer — right or wrong, you\'ll learn something.' },
+  'testimonials':{ icon:'⭐', title:'Student Stories', desc:'Hear from biology undergrads, medical students, and professors who use GeneLens every day.' },
+};
+let _shownSections = new Set();
+let _toastTimer = null;
+
+function showSectionToast(icon, title, desc) {
+  clearTimeout(_toastTimer);
+  document.getElementById('stIcon').textContent = icon;
+  document.getElementById('stTitle').textContent = title;
+  document.getElementById('stDesc').textContent = desc;
+  const t = document.getElementById('sectionToast');
+  t.classList.add('show');
+  _toastTimer = setTimeout(() => t.classList.remove('show'), 5000);
+}
+
+function dismissSectionToast() {
+  clearTimeout(_toastTimer);
+  document.getElementById('sectionToast').classList.remove('show');
+}
+
+const sectionObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const id = e.target.id;
+      if (id && SECTION_INTROS[id] && !_shownSections.has(id)) {
+        _shownSections.add(id);
+        const { icon, title, desc } = SECTION_INTROS[id];
+        setTimeout(() => showSectionToast(icon, title, desc), 300);
+      }
+    }
+  });
+}, { threshold: 0.25 });
+document.querySelectorAll('section[id]').forEach(s => sectionObserver.observe(s));
+
+// ── SCROLL ANIMATIONS ──
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+// ── FLOATING PARTICLES ──
+function createParticle() {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  const colors = ['#00d4ff','#7c3aed','#10b981','#f59e0b'];
+  const size = Math.random() * 4 + 2;
+  p.style.cssText = `
+    width:${size}px;height:${size}px;
+    left:${Math.random()*100}vw;
+    bottom:0;
+    background:${colors[Math.floor(Math.random()*colors.length)]};
+    animation-delay:${Math.random()*6}s;
+    animation-duration:${6+Math.random()*6}s;
+  `;
+  document.body.appendChild(p);
+  setTimeout(() => p.remove(), 12000);
+}
+setInterval(createParticle, 800);
+</script>
+</body>
+</html>

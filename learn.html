@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Learning Paths — GeneLens AI</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    :root {
+      --bg:#050a14;--bg2:#0a1628;--bg3:#0f1f3d;
+      --accent:#00d4ff;--accent2:#7c3aed;--accent3:#10b981;
+      --accent4:#f59e0b;--accent5:#ef4444;
+      --text:#e2e8f0;--text2:#94a3b8;--text3:#64748b;
+      --card:rgba(15,31,61,0.9);--border:rgba(0,212,255,0.15);--border2:rgba(255,255,255,0.08);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);}
+    h1,h2,h3,h4{font-family:'Space Grotesk',sans-serif;}
+
+    /* TOP BAR */
+    .topbar{height:56px;display:flex;align-items:center;gap:1rem;padding:0 1.25rem;background:rgba(5,10,20,0.95);border-bottom:1px solid var(--border2);position:sticky;top:0;z-index:100;flex-shrink:0;}
+    .logo-link{display:flex;align-items:center;gap:8px;text-decoration:none;color:var(--accent);font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:1.1rem;}
+    .logo-box{width:30px;height:30px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.9rem;}
+    .topbar-sep{width:1px;height:24px;background:var(--border2);}
+    .topbar-title{color:var(--text2);font-size:0.9rem;}
+    .topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+    .xp-badge{display:flex;align-items:center;gap:6px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:20px;padding:4px 12px;font-size:0.82rem;font-weight:700;color:var(--accent4);}
+    .streak-badge{display:flex;align-items:center;gap:5px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:20px;padding:4px 12px;font-size:0.82rem;font-weight:700;color:#f87171;}
+    .back-btn{padding:6px 14px;border-radius:7px;font-size:0.8rem;font-weight:600;background:transparent;border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-family:'Inter',sans-serif;text-decoration:none;transition:all 0.2s;}
+    .back-btn:hover{border-color:var(--accent);color:var(--accent);}
+
+    /* LAYOUT */
+    .app{display:flex;height:calc(100vh - 56px);overflow:hidden;}
+
+    /* SIDEBAR */
+    .sidebar{width:280px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border2);display:flex;flex-direction:column;overflow:hidden;}
+    .sidebar-top{padding:1rem;border-bottom:1px solid var(--border2);}
+    .path-tabs{display:flex;gap:4px;margin-bottom:0.75rem;}
+    .path-tab{flex:1;padding:5px 0;border-radius:6px;font-size:0.72rem;font-weight:700;text-align:center;cursor:pointer;border:1px solid var(--border2);color:var(--text3);background:transparent;transition:all 0.2s;font-family:'Inter',sans-serif;}
+    .path-tab.active.b{background:rgba(16,185,129,0.15);color:var(--accent3);border-color:rgba(16,185,129,0.3);}
+    .path-tab.active.i{background:rgba(0,212,255,0.15);color:var(--accent);border-color:rgba(0,212,255,0.3);}
+    .path-tab.active.a{background:rgba(124,58,237,0.15);color:#a78bfa;border-color:rgba(124,58,237,0.3);}
+    .path-tab:hover:not(.active){background:rgba(255,255,255,0.04);}
+    .progress-section{margin-top:0.5rem;}
+    .progress-label{display:flex;justify-content:space-between;font-size:0.75rem;color:var(--text3);margin-bottom:4px;}
+    .progress-bar-outer{height:5px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;}
+    .progress-bar-inner{height:100%;border-radius:3px;transition:width 0.5s ease;}
+    .sidebar-modules{flex:1;overflow-y:auto;padding:0.5rem 0;}
+    .module-group{margin-bottom:0.25rem;}
+    .module-group-header{padding:6px 1rem;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--text3);}
+    .module-item{display:flex;align-items:center;gap:10px;padding:8px 1rem;cursor:pointer;transition:background 0.15s;position:relative;}
+    .module-item:hover{background:rgba(255,255,255,0.04);}
+    .module-item.active{background:rgba(0,212,255,0.07);}
+    .module-item.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--accent);border-radius:0 2px 2px 0;}
+    .module-item.locked{opacity:0.4;cursor:not-allowed;}
+    .mi-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:0.85rem;flex-shrink:0;}
+    .mi-icon.done{background:rgba(16,185,129,0.15);}
+    .mi-icon.active-icon{background:rgba(0,212,255,0.15);}
+    .mi-icon.locked-icon{background:rgba(255,255,255,0.05);}
+    .mi-text{flex:1;min-width:0;}
+    .mi-title{font-size:0.82rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .mi-meta{font-size:0.7rem;color:var(--text3);}
+    .mi-check{font-size:0.7rem;color:var(--accent3);}
+    ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.1);border-radius:2px;}
+
+    /* MAIN LESSON AREA */
+    .main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+    .lesson-wrap{max-width:720px;margin:0 auto;padding:2rem 1.5rem 4rem;width:100%;}
+
+    /* LESSON HEADER */
+    .lesson-header{margin-bottom:2rem;}
+    .lesson-breadcrumb{font-size:0.75rem;color:var(--text3);margin-bottom:0.5rem;}
+    .lesson-breadcrumb span{color:var(--text2);}
+    .lesson-title-row{display:flex;align-items:flex-start;gap:1rem;margin-bottom:0.75rem;}
+    .lesson-num-badge{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:1rem;flex-shrink:0;font-family:'Space Grotesk',sans-serif;}
+    .lesson-title{font-size:1.6rem;font-weight:700;line-height:1.2;}
+    .lesson-meta-row{display:flex;gap:1rem;font-size:0.8rem;color:var(--text3);align-items:center;flex-wrap:wrap;}
+    .meta-chip{display:flex;align-items:center;gap:4px;}
+
+    /* LESSON CONTENT */
+    .lesson-content{line-height:1.8;font-size:0.97rem;color:var(--text2);}
+    .lesson-content h3{color:var(--text);font-size:1.1rem;font-weight:600;margin:1.75rem 0 0.75rem;}
+    .lesson-content p{margin-bottom:1rem;}
+    .lesson-content strong{color:var(--text);font-weight:600;}
+    .info-box{background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.15);border-radius:10px;padding:1rem 1.25rem;margin:1.25rem 0;font-size:0.9rem;}
+    .info-box.warning{background:rgba(245,158,11,0.06);border-color:rgba(245,158,11,0.2);}
+    .info-box.success{background:rgba(16,185,129,0.06);border-color:rgba(16,185,129,0.2);}
+    .info-box-title{font-weight:700;font-size:0.8rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:0.4rem;}
+    .analogy-card{background:rgba(124,58,237,0.07);border:1px solid rgba(124,58,237,0.2);border-radius:10px;padding:1.1rem 1.25rem;margin:1.25rem 0;}
+    .analogy-card .emoji{font-size:1.5rem;margin-bottom:0.4rem;}
+    .analogy-card strong{color:#a78bfa;}
+    .key-points{list-style:none;margin:0.5rem 0 1rem;}
+    .key-points li{display:flex;align-items:flex-start;gap:8px;padding:5px 0;font-size:0.92rem;}
+    .key-points li::before{content:'→';color:var(--accent);flex-shrink:0;font-weight:700;}
+    .gene-highlight{display:inline-block;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.2);border-radius:5px;padding:1px 7px;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:0.9rem;color:var(--accent);}
+    .gene-highlight.onco{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.2);color:#f87171;}
+    .gene-highlight.supp{background:rgba(59,130,246,0.1);border-color:rgba(59,130,246,0.2);color:#93c5fd;}
+    .gene-highlight.drug{background:rgba(16,185,129,0.1);border-color:rgba(16,185,129,0.2);color:#6ee7b7;}
+    .diagram-wrap{background:var(--card);border:1px solid var(--border2);border-radius:12px;overflow:hidden;margin:1.5rem 0;}
+    .diagram-title{padding:0.7rem 1rem;border-bottom:1px solid var(--border2);font-size:0.8rem;font-weight:600;color:var(--text3);}
+    .diagram-body{padding:1rem;}
+    canvas.lesson-canvas{display:block;width:100%;}
+    .data-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:0.85rem;}
+    .data-table th{padding:8px 12px;text-align:left;color:var(--text3);border-bottom:1px solid var(--border2);font-weight:600;font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em;}
+    .data-table td{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);color:var(--text2);}
+    .data-table tr:hover td{background:rgba(255,255,255,0.02);}
+    .data-table td:first-child{font-weight:700;color:var(--accent);font-family:'Space Grotesk',sans-serif;}
+
+    /* KNOWLEDGE CHECK */
+    .kc-section{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.5rem;margin:2rem 0;}
+    .kc-title{font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent);margin-bottom:0.3rem;}
+    .kc-question{font-size:1rem;font-weight:600;margin:0.5rem 0 1.1rem;line-height:1.5;}
+    .kc-options{display:flex;flex-direction:column;gap:8px;}
+    .kc-btn{padding:10px 14px;border-radius:9px;border:1px solid var(--border2);background:rgba(255,255,255,0.02);color:var(--text);font-size:0.9rem;text-align:left;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;}
+    .kc-btn:hover:not(:disabled){border-color:var(--accent);background:rgba(0,212,255,0.05);}
+    .kc-btn.correct{border-color:var(--accent3)!important;background:rgba(16,185,129,0.1)!important;color:var(--accent3)!important;}
+    .kc-btn.wrong{border-color:var(--accent5)!important;background:rgba(239,68,68,0.1)!important;color:#f87171!important;}
+    .kc-btn:disabled{cursor:not-allowed;}
+    .kc-feedback{margin-top:0.75rem;padding:0.85rem 1rem;border-radius:8px;font-size:0.88rem;line-height:1.5;display:none;}
+    .kc-feedback.show{display:block;}
+    .kc-feedback.correct{background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);color:rgba(110,231,183,0.9);}
+    .kc-feedback.wrong{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#fca5a5;}
+    .kc-next{margin-top:1rem;display:none;}
+
+    /* LESSON NAV */
+    .lesson-nav{display:flex;justify-content:space-between;align-items:center;margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--border2);}
+    .nav-btn{padding:9px 20px;border-radius:9px;font-size:0.9rem;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:all 0.2s;}
+    .nav-btn.prev{background:transparent;border:1px solid var(--border2);color:var(--text2);}
+    .nav-btn.prev:hover{border-color:var(--accent);color:var(--accent);}
+    .nav-btn.next{background:linear-gradient(135deg,var(--accent),#0099cc);border:none;color:#000;}
+    .nav-btn.next:hover{opacity:0.85;transform:translateY(-1px);}
+    .nav-btn:disabled{opacity:0.3;cursor:not-allowed;transform:none!important;}
+
+    /* ACHIEVEMENT TOAST */
+    .achievement-popup{position:fixed;top:70px;right:1.5rem;z-index:200;background:linear-gradient(135deg,rgba(245,158,11,0.15),rgba(124,58,237,0.1));border:1px solid rgba(245,158,11,0.4);border-radius:14px;padding:1rem 1.25rem;max-width:280px;transform:translateX(120%);transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);}
+    .achievement-popup.show{transform:translateX(0);}
+    .ach-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--accent4);margin-bottom:4px;}
+    .ach-name{font-weight:700;font-size:0.95rem;margin-bottom:2px;}
+    .ach-desc{font-size:0.8rem;color:var(--text2);}
+
+    /* COMPLETION SCREEN */
+    .completion-screen{display:none;text-align:center;padding:3rem 1.5rem;}
+    .completion-screen.show{display:block;}
+    .comp-emoji{font-size:4rem;animation:bounce 0.5s ease infinite alternate;}
+    @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-12px)}}
+    .comp-title{font-size:2rem;font-weight:800;margin:1rem 0 0.5rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .comp-desc{color:var(--text2);margin-bottom:2rem;font-size:1rem;}
+    .comp-stats{display:flex;justify-content:center;gap:2rem;margin-bottom:2rem;}
+    .comp-stat{text-align:center;}
+    .comp-stat-val{font-size:1.8rem;font-weight:800;color:var(--accent);font-family:'Space Grotesk',sans-serif;}
+    .comp-stat-label{font-size:0.8rem;color:var(--text3);}
+    .badge-grid{display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin:1.5rem 0;}
+    .badge-card{background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:1rem;width:140px;text-align:center;}
+    .badge-icon{font-size:2rem;margin-bottom:6px;}
+    .badge-name{font-size:0.8rem;font-weight:600;}
+    .badge-desc{font-size:0.7rem;color:var(--text3);margin-top:2px;}
+    .btn-primary{background:linear-gradient(135deg,var(--accent),#0099cc);color:#000;font-weight:700;padding:0.85rem 2rem;border-radius:10px;border:none;cursor:pointer;font-size:1rem;font-family:'Inter',sans-serif;transition:opacity 0.2s;}
+    .btn-primary:hover{opacity:0.9;}
+    @keyframes fadeSlide{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <a class="logo-link" href="index.html"><div class="logo-box">🔬</div>GeneLens AI</a>
+  <div class="topbar-sep"></div>
+  <span class="topbar-title">Learning Paths</span>
+  <div class="topbar-right">
+    <div class="xp-badge">⚡ <span id="xpDisplay">0</span> XP</div>
+    <div class="streak-badge">🔥 <span id="streakDisplay">1</span> day streak</div>
+    <a class="back-btn" href="index.html">← Home</a>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-top">
+      <div class="path-tabs">
+        <button class="path-tab b active" onclick="switchPath('beginner',this)">🌱 Beginner</button>
+        <button class="path-tab i" onclick="switchPath('intermediate',this)">⚡ Mid</button>
+        <button class="path-tab a" onclick="switchPath('advanced',this)">🚀 Adv</button>
+      </div>
+      <div class="progress-section">
+        <div class="progress-label"><span id="progressLabel">Path Progress</span><span id="progressPct">0%</span></div>
+        <div class="progress-bar-outer"><div class="progress-bar-inner" id="progressBar" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="sidebar-modules" id="sidebarModules"></div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main" id="mainArea">
+    <div class="lesson-wrap" id="lessonWrap"></div>
+  </div>
+
+</div>
+
+<!-- ACHIEVEMENT POPUP -->
+<div class="achievement-popup" id="achPopup">
+  <div class="ach-label">🏆 Achievement Unlocked!</div>
+  <div class="ach-name" id="achName"></div>
+  <div class="ach-desc" id="achDesc"></div>
+</div>
+
+<script>
+// ── POLYFILL: roundRect for older browsers ──
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x,y,w,h,r){
+    r = Math.min(r||0, Math.abs(w)/2, Math.abs(h)/2);
+    this.moveTo(x+r, y);
+    this.arcTo(x+w, y, x+w, y+h, r);
+    this.arcTo(x+w, y+h, x, y+h, r);
+    this.arcTo(x, y+h, x, y, r);
+    this.arcTo(x, y, x+w, y, r);
+    this.closePath();
+  };
+}
+
+// ── STATE ──
+let state = JSON.parse(localStorage.getItem('glState') || '{"xp":0,"streak":1,"completed":{},"currentPath":"beginner","currentLesson":0}');
+let currentPathId = state.currentPath || 'beginner';
+let currentLessonIdx = state.currentLesson || 0;
+
+// Store current quiz so answerKC never passes long strings through onclick
+let _activeQuiz = null;
+
+function saveState() { localStorage.setItem('glState', JSON.stringify(state)); }
+
+// ── CURRICULUM DATA ──
+const PATHS = {
+  beginner: {
+    id:'beginner', label:'Genomics Foundations', color:'#10b981',
+    modules: [
+      {
+        id:'b0', title:'Welcome to GeneLens', icon:'🎯', duration:'10 min', free:true,
+        xp:50, section:'Introduction',
+        content: `
+          <div class="info-box success"><div class="info-box-title">🎉 Welcome to your genomics journey!</div>
+          In this path you will go from zero genomics knowledge to confidently understanding how cancer starts and grows at the molecular level. No prior biology needed.</div>
+          <h3>What is GeneLens?</h3>
+          <p>GeneLens is your interactive guide to the cancer genome — think of it as <strong>Google Maps, but for biology</strong>. Just as Google Maps shows you roads, buildings, and points of interest, GeneLens shows you genes, mutations, and pathways.</p>
+          <p>You'll learn by <strong>exploring, clicking, visualizing, and answering questions</strong>. By the end of this path, you'll be able to look at a gene like <span class="gene-highlight">TP53</span> and understand exactly why oncologists care about it.</p>
+          <h3>How this platform works</h3>
+          <ul class="key-points">
+            <li>Each lesson has <strong>reading content</strong> with diagrams and visuals</li>
+            <li>Each lesson ends with a <strong>knowledge check</strong> question — answer it to unlock the next module</li>
+            <li>You earn <strong>XP (experience points)</strong> for every completed lesson</li>
+            <li>Unlock <strong>badges and achievements</strong> as you progress</li>
+            <li>Your progress is <strong>saved automatically</strong> in your browser</li>
+          </ul>
+          <div class="info-box"><div class="info-box-title">💡 Pro Tip</div>
+          After each lesson, visit the <strong>Gene Explorer</strong> to see what you just learned visualized on the real genome map. Connecting concepts to the visual map is the fastest way to build intuition.</div>
+          <h3>What you'll master in this path</h3>
+          <p>Over 12 modules, you'll understand DNA, mutations, oncogenes, tumor suppressors, cancer hallmarks, and how to navigate the cancer genome — all in about 4 hours of learning.</p>
+          <p>Ready? Let's start with the most fundamental question in all of cancer biology.</p>`,
+        quiz: { q:'What makes GeneLens different from a textbook?', opts:['It has more pages','It is interactive — you explore, visualize, and answer questions','It costs more','It only covers breast cancer'], correct:1, exp:'GeneLens combines interactive maps, real genomic data, visual diagrams, and knowledge checks. Passive reading is less effective than active exploration and retrieval practice.' }
+      },
+      {
+        id:'b1', title:'What is DNA?', icon:'🧬', duration:'20 min', free:true,
+        xp:100, section:'DNA & Genes',
+        content: `
+          <h3>The blueprint of life</h3>
+          <p><strong>DNA (deoxyribonucleic acid)</strong> is the molecule that carries the genetic instructions for building, running, and reproducing every living organism. Think of DNA as a massive cookbook — it contains all the recipes your body needs.</p>
+          <div class="analogy-card"><div class="emoji">📚</div><strong>Analogy:</strong> If your body is a city, then DNA is the complete architectural blueprint — every building design, every wiring diagram, every plumbing plan — all stored in the city hall (the nucleus of each cell).</div>
+          <h3>The double helix structure</h3>
+          <p>DNA is shaped like a <strong>twisted ladder</strong> — the famous double helix. The sides of the ladder are made of sugar (deoxyribose) and phosphate groups. The rungs are made of <strong>base pairs</strong>:</p>
+          <ul class="key-points">
+            <li><strong>Adenine (A)</strong> always pairs with <strong>Thymine (T)</strong></li>
+            <li><strong>Guanine (G)</strong> always pairs with <strong>Cytosine (C)</strong></li>
+          </ul>
+          <p>The <strong>sequence</strong> of these bases spells out all the genetic information. The human genome contains approximately <strong>3.2 billion base pairs</strong>.</p>
+          <div class="diagram-wrap"><div class="diagram-title">Base Pairing Rules</div><div class="diagram-body"><canvas class="lesson-canvas" id="dnaBasePairCanvas" height="120"></canvas></div></div>
+          <h3>From DNA to genes</h3>
+          <p>A <strong>gene</strong> is a specific stretch of DNA that contains instructions for making a protein. Humans have approximately <strong>20,000–25,000 genes</strong>, but only ~2% of our DNA codes for proteins — the rest is regulatory sequences, structural elements, and regions we are still studying.</p>
+          <div class="info-box"><div class="info-box-title">🔑 Key Numbers to Remember</div>
+          <ul class="key-points" style="margin:0">
+            <li>3.2 billion base pairs in the human genome</li>
+            <li>~20,000 protein-coding genes</li>
+            <li>46 chromosomes (23 pairs) in each human cell</li>
+            <li>~37 trillion cells in the human body — each contains a complete copy of your genome</li>
+          </ul></div>
+          <h3>Chromosomes: packaging DNA</h3>
+          <p>DNA is wrapped around proteins called <strong>histones</strong> and compacted into structures called <strong>chromosomes</strong>. Humans have 46 chromosomes arranged in 23 pairs. You inherit one copy of each chromosome from your mother and one from your father.</p>
+          <p>If you stretched out all the DNA from a single human cell, it would be about <strong>2 meters long</strong> — yet it fits inside a nucleus that is less than 0.01 millimeters in diameter.</p>`,
+        quiz: { q:'Which bases pair together in DNA?', opts:['A-G and T-C','A-T and G-C','A-C and G-T','A-A and T-T'], correct:1, exp:'Adenine (A) always pairs with Thymine (T), and Guanine (G) always pairs with Cytosine (C). These are called Watson-Crick base pairs. The complementary pairing is what allows DNA to be accurately copied.' }
+      },
+      {
+        id:'b2', title:'Genes, Proteins & Instructions', icon:'🔧', duration:'18 min', free:true,
+        xp:100, section:'DNA & Genes',
+        content: `
+          <h3>The central dogma of molecular biology</h3>
+          <p>One of the most important principles in biology is called the <strong>Central Dogma</strong>: genetic information flows from DNA → RNA → Protein. This is how genes produce the molecules that actually do the work in your cells.</p>
+          <div class="diagram-wrap"><div class="diagram-title">Central Dogma</div><div class="diagram-body"><canvas class="lesson-canvas" id="centralDogmaCanvas" height="80"></canvas></div></div>
+          <h3>Step 1: Transcription (DNA → RNA)</h3>
+          <p>When a gene needs to be expressed, an enzyme called <strong>RNA polymerase</strong> reads the DNA template and produces a complementary strand of <strong>messenger RNA (mRNA)</strong>. This process is called <strong>transcription</strong> because it's like rewriting the recipe from the master cookbook (DNA) onto a notecard (mRNA) that can leave the nucleus.</p>
+          <div class="analogy-card"><div class="emoji">📋</div><strong>Analogy:</strong> DNA is the master recipe book kept in the vault (nucleus). mRNA is a photocopy of a single recipe that gets sent out to the kitchen (ribosomes) for cooking.</div>
+          <h3>Step 2: Translation (RNA → Protein)</h3>
+          <p>mRNA travels from the nucleus to the cytoplasm, where <strong>ribosomes</strong> read the mRNA sequence in groups of 3 bases called <strong>codons</strong>. Each codon specifies one <strong>amino acid</strong>. The ribosome strings amino acids together to build a <strong>protein</strong>.</p>
+          <p>There are 20 different amino acids — the sequence of amino acids determines how the protein folds, and folding determines function.</p>
+          <h3>Why proteins matter</h3>
+          <p>Proteins are the workers of the cell. Every biological process depends on proteins:</p>
+          <ul class="key-points">
+            <li><strong>Enzymes</strong> — catalyze chemical reactions (e.g., DNA polymerase copies DNA)</li>
+            <li><strong>Structural proteins</strong> — provide physical support (e.g., collagen)</li>
+            <li><strong>Signaling proteins</strong> — carry messages between cells (e.g., hormones, growth factors)</li>
+            <li><strong>Kinases</strong> — enzymes that add phosphate groups to activate/deactivate other proteins</li>
+            <li><strong>Transcription factors</strong> — proteins that control which genes are turned on or off</li>
+          </ul>
+          <div class="info-box warning"><div class="info-box-title">⚠️ Cancer connection</div>When a mutation changes the DNA sequence of a gene, it can change the protein that gene produces — making it overactive, underactive, or completely non-functional. This is fundamentally how cancer starts.</div>`,
+        quiz: { q:'What is the correct order of the Central Dogma?', opts:['Protein → RNA → DNA','RNA → DNA → Protein','DNA → RNA → Protein','DNA → Protein → RNA'], correct:2, exp:'The Central Dogma describes the flow of genetic information: DNA is transcribed into RNA, which is translated into protein. The sequence DNA → RNA → Protein was established by Francis Crick in 1958 and remains one of biology\'s foundational principles.' }
+      },
+      {
+        id:'b3', title:'What is a Mutation?', icon:'⚡', duration:'22 min', free:true,
+        xp:120, section:'Mutations',
+        content: `
+          <h3>When the code changes</h3>
+          <p>A <strong>mutation</strong> is any change in the DNA sequence. Mutations happen constantly — your cells experience thousands of DNA lesions per day from ultraviolet light, chemical exposure, and errors during DNA replication. Most are repaired. The ones that slip through are mutations.</p>
+          <h3>Types of mutations</h3>
+          <div class="data-table-wrap" style="overflow-x:auto;margin:1rem 0">
+          <table class="data-table">
+            <tr><th>Mutation Type</th><th>What Changes</th><th>Cancer Example</th><th>Effect</th></tr>
+            <tr><td>Missense</td><td>1 base → different amino acid</td><td>KRAS G12D, BRAF V600E</td><td>Altered protein function</td></tr>
+            <tr><td>Nonsense</td><td>1 base → premature STOP codon</td><td>TP53 R213X</td><td>Truncated, usually non-functional protein</td></tr>
+            <tr><td>Frameshift</td><td>Insertion or deletion shifts reading frame</td><td>BRCA1 185delAG</td><td>Completely different protein downstream</td></tr>
+            <tr><td>Splice site</td><td>Affects intron-exon boundary</td><td>BRCA2 IVS7+1G>A</td><td>Exon skipping or retained intron</td></tr>
+            <tr><td>Amplification</td><td>Many extra copies of a gene</td><td>HER2 amplification, MYC</td><td>Too much of the protein</td></tr>
+            <tr><td>Deletion</td><td>Gene copy or segment lost</td><td>RB1 deletion</td><td>Loss of function</td></tr>
+          </table></div>
+          <div class="analogy-card"><div class="emoji">📝</div><strong>Analogy — missense mutation:</strong> Imagine a recipe that says "Add 2 cups of <strong>sugar</strong>" but a typo changes it to "Add 2 cups of <strong>salt</strong>." The protein (dish) is still made, but it doesn't work properly.</div>
+          <h3>Somatic vs. germline mutations</h3>
+          <p>This distinction is critical in cancer medicine:</p>
+          <ul class="key-points">
+            <li><strong>Somatic mutations</strong>: arise in body cells during your lifetime. Affect only the tumor. Cannot be inherited. Responsible for most cancers.</li>
+            <li><strong>Germline mutations</strong>: present in every cell since conception (inherited from parents). Can be passed to children. Explain cancer syndromes like hereditary breast cancer (BRCA1/2) and Lynch syndrome (MLH1/MSH2).</li>
+          </ul>
+          <div class="info-box"><div class="info-box-title">📊 Mutation Rates Vary Dramatically by Cancer Type</div>
+          Melanoma (driven by UV) can have >100,000 mutations per tumor. Pediatric cancers typically have <10 mutations per tumor. This affects response to immunotherapy — more mutations = more "foreign-looking" = more immune recognition.</div>
+          <h3>Driver vs. passenger mutations</h3>
+          <p>Not all mutations cause cancer. A typical tumor has <strong>hundreds to thousands</strong> of mutations, but only a handful actually drive the cancer:</p>
+          <ul class="key-points">
+            <li><strong>Driver mutations</strong> — provide a growth advantage; are selected for during tumor evolution</li>
+            <li><strong>Passenger mutations</strong> — happen to be present but don't contribute to cancer growth; arise from the same mutational processes but don't help the tumor</li>
+          </ul>`,
+        quiz: { q:'A mutation changes one amino acid to a different amino acid. What type of mutation is this?', opts:['Frameshift','Splice site','Missense','Nonsense'], correct:2, exp:'A missense mutation is a single nucleotide change that results in a different amino acid being incorporated into the protein. The most famous example is BRAF V600E (valine→glutamic acid) in melanoma, which constitutively activates BRAF kinase.' }
+      },
+      {
+        id:'b4', title:'Oncogenes: The Accelerators', icon:'🚀', duration:'25 min', free:true,
+        xp:150, section:'Cancer Genes',
+        content: `
+          <h3>Normal proto-oncogenes</h3>
+          <p>Every cell in your body carries genes called <strong>proto-oncogenes</strong>. These are normal, essential genes that control cell growth, division, and differentiation. They are the accelerators of cellular activity — when cells need to grow and divide, proto-oncogenes are activated.</p>
+          <p>Examples of proto-oncogene functions include: detecting growth factors (EGFR), relaying growth signals (KRAS, BRAF), promoting cell cycle entry (Cyclin D, CDK4), and controlling gene expression (MYC).</p>
+          <div class="analogy-card"><div class="emoji">🚗</div><strong>Analogy:</strong> A proto-oncogene is like the <strong>gas pedal</strong> in a car. When you press it appropriately, the car moves forward at the right speed. It's a normal, useful part of the car.</div>
+          <h3>When proto-oncogenes become oncogenes</h3>
+          <p>A <strong>proto-oncogene becomes an oncogene</strong> when a mutation makes it <strong>constitutively active</strong> — permanently "stuck on." It no longer needs an external signal to fire. The cell proliferates uncontrollably.</p>
+          <div class="analogy-card"><div class="emoji">⚠️</div><strong>Analogy — the stuck gas pedal:</strong> An oncogene mutation is like a gas pedal stuck to the floor. The car accelerates regardless of your intent, ignoring stop signs, red lights, and cliff edges. This is the oncogene-driven cancer cell.</div>
+          <h3>The most important oncogenes</h3>
+          <p>Let's look at three cancer-critical oncogenes in detail:</p>
+          <div class="info-box"><div class="info-box-title">🔴 KRAS — Mutated in 25% of all cancers</div>
+          KRAS is a small GTPase that normally cycles between an active (GTP-bound) ON state and an inactive (GDP-bound) OFF state. Oncogenic mutations (most commonly G12D or G12V) impair GTPase activity, locking KRAS in the ON state. Active KRAS drives proliferation through RAF/MEK/ERK and PI3K/AKT. Historically "undruggable" until KRAS G12C inhibitors (Sotorasib) were approved in 2021.</div>
+          <div class="info-box warning"><div class="info-box-title">🟠 MYC — Amplified in 70%+ of cancers</div>
+          MYC is a transcription factor that activates hundreds of genes involved in cell growth, protein synthesis, and metabolism. Rather than point mutations, MYC is typically activated by <em>gene amplification</em> — tumors make extra copies of the MYC gene, producing too much MYC protein. Nearly impossible to target directly (it's a transcription factor without a small-molecule binding pocket).</div>
+          <div class="info-box"><div class="info-box-title">🟡 HER2 (ERBB2) — Amplified in 20% of breast cancers</div>
+          HER2 is a receptor tyrosine kinase amplified in aggressive breast cancers. It drives proliferation via PI3K and RAS pathways. <strong>Trastuzumab (Herceptin)</strong> — an antibody that blocks HER2 — transformed HER2+ breast cancer from one of the deadliest subtypes to one of the most treatable. This is one of targeted therapy's greatest success stories.</div>
+          <h3>Key principle: oncogenes require only ONE mutant copy</h3>
+          <p>This is a critical concept. Oncogene mutations are <strong>dominant</strong> — even if you have one normal copy of the gene, the mutant copy is enough to drive cancer. This is in contrast to tumor suppressor genes (next lesson), which typically require BOTH copies to be lost.</p>`,
+        quiz: { q:'KRAS mutations cause cancer because they:', opts:['Completely delete the KRAS gene','Lock KRAS in an active state, constitutively driving cell proliferation','Increase DNA repair activity','Cause KRAS to produce a shorter protein'], correct:1, exp:'Oncogenic KRAS mutations (G12D, G12V, G12C, etc.) occur in the GTPase domain and impair the ability of KRAS to hydrolyze GTP to GDP. This locks KRAS in its active GTP-bound form, constitutively activating downstream pathways (RAF/MEK/ERK, PI3K/AKT) regardless of external growth signals.' }
+      },
+      {
+        id:'b5', title:'Tumor Suppressors: The Brakes', icon:'🛑', duration:'25 min', free:true,
+        xp:150, section:'Cancer Genes',
+        content: `
+          <h3>The braking system</h3>
+          <p>Counterbalancing oncogenes are <strong>tumor suppressor genes</strong> — genes that normally prevent cells from growing or dividing too fast. They are the brakes, quality-control checkpoints, and repair crews of the cell.</p>
+          <div class="analogy-card"><div class="emoji">🛑</div><strong>Analogy:</strong> Tumor suppressors are the <strong>brakes, guardrails, and speed cameras</strong> of the cell's highway. When working, they prevent the car from going too fast or driving off a cliff.</div>
+          <h3>The Two-Hit Hypothesis</h3>
+          <p>Alfred Knudson's famous <strong>Two-Hit Hypothesis</strong> (1971) explains how tumor suppressors are inactivated in cancer. Because you have <strong>two copies</strong> of most genes (one from each parent), <em>both</em> copies must be inactivated for the cancer-suppressing function to be lost:</p>
+          <ul class="key-points">
+            <li><strong>First hit</strong>: One copy is inactivated (mutation, deletion, or methylation)</li>
+            <li><strong>Second hit</strong>: The remaining copy is also inactivated (LOH — loss of heterozygosity)</li>
+          </ul>
+          <p>In hereditary cancers (like BRCA1-associated breast cancer), patients are born with one damaged copy already — so only <em>one more hit</em> is needed in any cell to lose both copies.</p>
+          <h3>TP53 — Guardian of the Genome</h3>
+          <p><span class="gene-highlight supp">TP53</span> encodes p53, the most important tumor suppressor gene — mutated in over <strong>50% of all human cancers</strong>. When DNA is damaged, p53 does one of two things:</p>
+          <ul class="key-points">
+            <li><strong>Pause the cell cycle</strong> (via p21) to allow DNA repair — like pulling over to fix a flat tire</li>
+            <li><strong>Trigger apoptosis</strong> (programmed cell death) if damage is irreparable — like choosing to total the car rather than drive it dangerously</li>
+          </ul>
+          <p>When TP53 is mutated, cells with damaged DNA survive and continue dividing, accumulating more mutations. This is why TP53 loss is so catastrophic.</p>
+          <h3>BRCA1 and BRCA2</h3>
+          <p><span class="gene-highlight supp">BRCA1</span> and <span class="gene-highlight supp">BRCA2</span> are DNA repair genes — specifically, they orchestrate <strong>homologous recombination</strong>, the most accurate way to repair double-strand DNA breaks.</p>
+          <p>Women with germline BRCA1 mutations have a ~65-70% lifetime risk of breast cancer and ~40-45% risk of ovarian cancer. BRCA-mutant tumors are <strong>exquisitely sensitive to PARP inhibitors</strong> (Olaparib, Niraparib) because they already lack one DNA repair pathway — blocking PARP removes a second pathway, causing synthetic lethality.</p>
+          <div class="info-box"><div class="info-box-title">💊 Clinical Implication: Synthetic Lethality</div>
+          PARP inhibitors (PARPi) work through "synthetic lethality": BRCA-mutant cells rely on PARP for DNA repair. When PARPi blocks PARP in a BRCA-deficient tumor, the cell has NO way to repair DNA → cell death. Normal cells (with intact BRCA1/2) can compensate, so they survive. This is highly tumor-selective therapy.</div>`,
+        quiz: { q:'The Two-Hit Hypothesis states that tumor suppressors require:', opts:['One mutation in one copy of the gene','Inactivation of BOTH copies of the gene','Overexpression of the gene','A frameshift mutation only'], correct:1, exp:'Knudson\'s Two-Hit Hypothesis states that since we have two copies of most genes, both copies of a tumor suppressor must be inactivated for cancer-promoting loss of function. In hereditary cancer syndromes, patients inherit one inactivated copy (first hit) and only need a second somatic event (second hit) to lose all tumor suppressor function.' }
+      },
+      {
+        id:'b6', title:'The Hallmarks of Cancer', icon:'🎯', duration:'30 min', free:true,
+        xp:180, section:'Cancer Biology',
+        content: `
+          <h3>What makes a cancer cell a cancer cell?</h3>
+          <p>In 2000 (updated in 2011), Hanahan & Weinberg published "The Hallmarks of Cancer" — a landmark paper describing the <strong>6 (now 10) core capabilities</strong> that all cancers acquire during tumor development. Understanding these hallmarks helps explain why cancer is so dangerous and difficult to treat.</p>
+          <div class="diagram-wrap"><div class="diagram-title">The 10 Hallmarks of Cancer</div><div class="diagram-body"><canvas class="lesson-canvas" id="hallmarksCanvas" height="300"></canvas></div></div>
+          <h3>The six original hallmarks</h3>
+          <ul class="key-points">
+            <li><strong>Sustaining proliferative signaling</strong> — Oncogene mutations keep growth signals permanently ON (KRAS, EGFR, HER2)</li>
+            <li><strong>Evading growth suppressors</strong> — Tumor suppressor loss removes brakes (TP53, RB1, PTEN)</li>
+            <li><strong>Resisting cell death</strong> — Anti-apoptotic proteins (BCL-2) prevent cells from dying even when damaged</li>
+            <li><strong>Enabling replicative immortality</strong> — Telomerase activation allows unlimited cell divisions</li>
+            <li><strong>Inducing angiogenesis</strong> — VEGF drives formation of new blood vessels to feed the tumor</li>
+            <li><strong>Activating invasion and metastasis</strong> — E-cadherin loss and EMT allow cancer cells to spread</li>
+          </ul>
+          <h3>Four emerging hallmarks</h3>
+          <ul class="key-points">
+            <li><strong>Avoiding immune destruction</strong> — PD-L1 expression and T-cell exclusion (basis of immunotherapy)</li>
+            <li><strong>Tumor-promoting inflammation</strong> — Chronic inflammation provides growth factors and immunosuppression</li>
+            <li><strong>Genome instability and mutation</strong> — High mutation rates accelerate evolution of drug resistance</li>
+            <li><strong>Deregulating cellular metabolism</strong> — Warburg effect: glucose → lactate even in oxygen (fuels biosynthesis)</li>
+          </ul>
+          <div class="info-box"><div class="info-box-title">🔑 Why hallmarks matter clinically</div>
+          Each hallmark represents a therapeutic target. Imatinib targets proliferative signaling (BCR-ABL). Olaparib targets genome instability (PARP). Pembrolizumab targets immune evasion (PD-1). Bevacizumab targets angiogenesis (VEGF). The hallmarks framework predicted many of today's most important cancer therapies.</div>`,
+        quiz: { q:'Which hallmark allows tumor cells to avoid being killed by the immune system?', opts:['Enabling replicative immortality','Inducing angiogenesis','Avoiding immune destruction','Deregulating cellular metabolism'], correct:2, exp:'Avoiding immune destruction is the hallmark responsible for tumor immune evasion. Mechanisms include PD-L1 expression (which binds PD-1 on T cells, inactivating them), downregulation of MHC-I (making tumors invisible to T cells), and recruitment of immunosuppressive regulatory T cells. This hallmark is the basis for immune checkpoint inhibitor therapy (anti-PD-1, anti-CTLA-4).' }
+      },
+      {
+        id:'b7', title:'Kinases: The Signal Switches', icon:'⚙️', duration:'20 min', free:true,
+        xp:130, section:'Targeted Therapy',
+        content: `
+          <h3>What is a kinase?</h3>
+          <p>A <strong>kinase</strong> is an enzyme that transfers a phosphate group (from ATP) to a specific target protein. This phosphorylation <strong>switches the target protein on or off</strong>, like flipping a light switch. Protein kinases are the dominant signal-relay proteins in cancer biology.</p>
+          <div class="analogy-card"><div class="emoji">💡</div><strong>Analogy:</strong> A kinase is like an <strong>electrical switch</strong>. Phosphorylation turns on downstream signals like flipping a switch. Phosphatases (e.g., PTEN) are the switches that turn them back off.</div>
+          <h3>The kinase cascade in cancer</h3>
+          <p>Most cancer-driving signals flow through <strong>kinase cascades</strong>: Growth Factor → Receptor Tyrosine Kinase → RAS → RAF (BRAF) → MEK → ERK → Gene expression. Mutations at any level of this cascade can drive cancer.</p>
+          <h3>Kinase inhibitors: targeted therapy</h3>
+          <p>Kinases are druggable — their ATP-binding pockets can be targeted with small molecules (<strong>TKIs: tyrosine kinase inhibitors</strong>). This is the basis of modern precision oncology:</p>
+          <table class="data-table">
+            <tr><th>Drug</th><th>Target Kinase</th><th>Cancer Type</th><th>Response Rate</th></tr>
+            <tr><td>Imatinib (Gleevec)</td><td>BCR-ABL</td><td>CML</td><td>&gt;95%</td></tr>
+            <tr><td>Erlotinib / Osimertinib</td><td>EGFR</td><td>NSCLC (EGFR mut)</td><td>~65-80%</td></tr>
+            <tr><td>Vemurafenib / Dabrafenib</td><td>BRAF V600E</td><td>Melanoma</td><td>~50-60%</td></tr>
+            <tr><td>Alectinib</td><td>ALK</td><td>NSCLC (ALK+)</td><td>~80%</td></tr>
+            <tr><td>Sotorasib</td><td>KRAS G12C</td><td>NSCLC, CRC</td><td>~37-43%</td></tr>
+            <tr><td>Alpelisib</td><td>PI3Kα (PIK3CA)</td><td>Breast cancer</td><td>~26%</td></tr>
+          </table>
+          <div class="info-box warning"><div class="info-box-title">⚠️ The Resistance Problem</div>
+          Almost all patients on kinase inhibitors eventually develop <strong>acquired resistance</strong>. Common mechanisms: secondary mutations in the kinase domain (e.g., EGFR T790M after erlotinib), bypass pathway activation (e.g., MET amplification after EGFR TKI), and histological transformation. This drives the development of next-generation inhibitors (e.g., Osimertinib for T790M).</div>`,
+        quiz: { q:'What does a kinase inhibitor do?', opts:['It activates the kinase to promote tumor growth','It blocks the ATP-binding pocket of a mutant kinase, preventing it from sending growth signals','It replaces the mutant gene with a normal copy','It causes the kinase to degrade itself'], correct:1, exp:'Kinase inhibitors (TKIs) work by competing with ATP for the kinase\'s ATP-binding pocket. When ATP cannot bind, the kinase cannot phosphorylate its targets — the growth signal is blocked. The specificity for mutant kinases (vs. normal kinases) comes from conformational differences in the binding pocket caused by the cancer-driving mutation.' }
+      },
+      {
+        id:'b8', title:'Reading a Mutation Report', icon:'📋', duration:'20 min', free:true,
+        xp:140, section:'Clinical Genomics',
+        content: `
+          <h3>What is genomic tumor testing?</h3>
+          <p>Modern cancer medicine uses <strong>next-generation sequencing (NGS)</strong> to sequence a tumor's DNA. This produces a <strong>mutation report</strong> listing all the significant mutations found. Oncologists use this report to select targeted therapies. Understanding how to read a basic mutation report is a core clinical skill.</p>
+          <h3>Key components of a genomic report</h3>
+          <ul class="key-points">
+            <li><strong>Gene name</strong> — which gene is mutated (e.g., KRAS, TP53, EGFR)</li>
+            <li><strong>Variant</strong> — the specific change (e.g., G12D = glycine→aspartic acid at codon 12)</li>
+            <li><strong>Allele frequency (AF)</strong> — what % of tumor cells carry that mutation (e.g., 45% AF)</li>
+            <li><strong>Classification</strong> — Pathogenic / Likely Pathogenic / VUS (Variant of Unknown Significance) / Benign</li>
+            <li><strong>Actionability</strong> — is there an approved drug for this mutation? (FDA-approved tier, clinical trial, off-label)</li>
+          </ul>
+          <h3>Sample report interpretation</h3>
+          <table class="data-table">
+            <tr><th>Gene</th><th>Variant</th><th>AF</th><th>Classification</th><th>Therapy</th></tr>
+            <tr><td>KRAS</td><td>G12C</td><td>38%</td><td>Pathogenic</td><td>Sotorasib (FDA-approved)</td></tr>
+            <tr><td>TP53</td><td>R248W</td><td>41%</td><td>Pathogenic</td><td>None direct; prognostic</td></tr>
+            <tr><td>STK11</td><td>E311* (nonsense)</td><td>35%</td><td>Pathogenic</td><td>Resistance to pembrolizumab</td></tr>
+            <tr><td>ARID1A</td><td>V1551L</td><td>12%</td><td>VUS</td><td>Investigational</td></tr>
+          </table>
+          <div class="info-box"><div class="info-box-title">💡 Tumor Mutational Burden (TMB)</div>
+          Reports often include <strong>TMB (mutations per megabase)</strong>. High TMB (>10 mut/Mb) means the tumor has many mutations → many neoantigens → more likely to respond to <strong>immune checkpoint inhibitors</strong> (e.g., pembrolizumab). TMB-high is an FDA-approved biomarker for pembrolizumab across tumor types.</div>
+          <h3>MSI status</h3>
+          <p><strong>Microsatellite Instability (MSI)</strong> is tested alongside mutation profiling. MSI-High (MSI-H) indicates mismatch repair deficiency — associated with very high mutation burden and excellent response to immunotherapy. Dostarlimab produced 100% response rates in MSI-H rectal cancer in a 2022 trial.</p>`,
+        quiz: { q:'A genomic report shows KRAS G12C with 40% allele frequency. This means:', opts:['40% of the patient\'s KRAS gene is normal','About 40% of sequenced tumor cells carry the KRAS G12C mutation','The patient has a 40% chance of responding to treatment','KRAS is amplified 40 times'], correct:1, exp:'Allele frequency (AF) refers to what percentage of the sequenced DNA reads carry that specific variant. In tumor sequencing, 40% AF suggests approximately 40% of tumor cells (or 80% with heterozygous clonal mutation) carry the KRAS G12C mutation, making this a clonal, dominant driver mutation. This patient would be a candidate for KRAS G12C inhibitors like Sotorasib.' }
+      },
+      {
+        id:'b9', title:'Immunotherapy & Cancer', icon:'🛡️', duration:'22 min', free:true,
+        xp:150, section:'Treatments',
+        content: `
+          <h3>The immune system and cancer</h3>
+          <p>Your immune system naturally destroys cancer cells — T cells recognize abnormal proteins (neoantigens from mutations) on cancer cells and kill them. However, advanced cancers evolve mechanisms to <strong>evade immune surveillance</strong>.</p>
+          <h3>Immune checkpoint inhibitors</h3>
+          <p>The most revolutionary advance in cancer therapy over the past decade. <strong>Checkpoints</strong> are normal brakes on the immune system — they prevent T cells from attacking normal tissue. Cancer cells hijack these checkpoints to hide from T cells.</p>
+          <ul class="key-points">
+            <li><strong>PD-1 / PD-L1 axis:</strong> PD-L1 on tumor cells binds PD-1 on T cells, inactivating them. Anti-PD-1 (Pembrolizumab, Nivolumab) or anti-PD-L1 (Atezolizumab) antibodies block this interaction → T cells reactivated → tumor killing</li>
+            <li><strong>CTLA-4:</strong> CTLA-4 on T cells competes with CD28 for B7 ligand — dampening T cell activation. Anti-CTLA-4 (Ipilimumab) releases this brake → stronger anti-tumor immunity</li>
+          </ul>
+          <div class="info-box success"><div class="info-box-title">🏆 Nobel Prize 2018</div>
+          James Allison (anti-CTLA-4) and Tasuku Honjo (anti-PD-1) won the Nobel Prize in Physiology or Medicine for discovering immune checkpoints and their use in cancer therapy — one of the most consequential discoveries in oncology history.</div>
+          <h3>Who responds to immunotherapy?</h3>
+          <p>Biomarkers that predict response:</p>
+          <ul class="key-points">
+            <li><strong>High TMB</strong> — more neoantigens = more T cell targets</li>
+            <li><strong>MSI-H / dMMR</strong> — mismatch repair deficiency = very high mutation burden</li>
+            <li><strong>PD-L1 expression</strong> — measured by IHC; high PD-L1 often predicts response (but not always)</li>
+          </ul>
+          <h3>CAR-T cell therapy</h3>
+          <p>A newer approach: take a patient's T cells, engineer them in the lab to express a <strong>Chimeric Antigen Receptor (CAR)</strong> targeting a tumor antigen (e.g., CD19 in B-cell lymphoma), and infuse them back. CAR-T has produced durable remissions in previously untreatable blood cancers.</p>`,
+        quiz: { q:'How do PD-1 inhibitors (like Pembrolizumab) work against cancer?', opts:['They directly kill cancer cells with a toxin','They block the PD-1 checkpoint, allowing T cells to recognize and attack cancer cells','They amplify the cancer\'s DNA damage response','They inhibit VEGF to block blood vessel formation'], correct:1, exp:'PD-1 inhibitors (anti-PD-1 antibodies like pembrolizumab/nivolumab) bind to PD-1 on T cells, blocking PD-L1 (expressed on tumor cells) from inactivating the T cell. This releases the brake, allowing T cells to recognize tumor neoantigens and mount an effective anti-tumor immune response.' }
+      },
+      {
+        id:'b10', title:'Your First Genome Navigation', icon:'🗺️', duration:'15 min', free:true,
+        xp:200, section:'Hands-On',
+        content: `
+          <h3>You're ready to navigate!</h3>
+          <p>Congratulations — you now have the foundational knowledge to explore the cancer genome. In this module, you'll learn how to use the <strong>GeneLens Genome Explorer</strong> and connect everything you've learned.</p>
+          <h3>Explorer navigation guide</h3>
+          <ul class="key-points">
+            <li><strong>Left sidebar</strong> — select a cancer type to filter which genes are highlighted</li>
+            <li><strong>Chromosome view</strong> — 24 human chromosomes with colored gene markers. Click any chromosome to jump to its genes</li>
+            <li><strong>Gene detail panel</strong> — click any gene in the right panel to see full information: function, mutations, drugs, pathway, cancer associations</li>
+            <li><strong>Pathway view</strong> — click ⚙️ Pathways in the top bar to see RAS/MAPK, PI3K/AKT, p53, Wnt, and Cell Cycle signaling diagrams with cancer gene annotations</li>
+            <li><strong>Search bar</strong> — type any gene name (TP53, KRAS, BRCA1...) to jump directly to its detail page</li>
+          </ul>
+          <div class="info-box success"><div class="info-box-title">🎯 Challenge: Find 5 genes</div>
+          Navigate to the Genome Explorer and find these 5 genes. For each one, note: (1) what type it is, (2) which pathway it's in, and (3) which cancer type it's most associated with:
+          <br><br>
+          <strong>TP53 · KRAS · BRCA1 · BRAF · APC</strong>
+          <br><br>
+          Use the search bar for each gene. This is your "Google Maps tour" of the cancer genome!</div>
+          <h3>What you've accomplished</h3>
+          <p>You've completed the <strong>Genomics Foundations</strong> path. Here's what you now understand:</p>
+          <ul class="key-points">
+            <li>The structure and function of DNA, genes, and proteins</li>
+            <li>How mutations arise and the types that drive cancer</li>
+            <li>The difference between oncogenes and tumor suppressors</li>
+            <li>The Ten Hallmarks of Cancer</li>
+            <li>How kinase inhibitors, immunotherapy, and PARP inhibitors work</li>
+            <li>How to read a genomic mutation report</li>
+          </ul>
+          <div class="info-box"><div class="info-box-title">🚀 What's next?</div>
+          You're ready for the <strong>Cancer Genomics Deep Dive</strong> (Intermediate path). You'll explore cancer-type-specific genomics, signaling pathways in depth, and learn to interpret full mutation landscapes. Upgrade to Pro to unlock.</div>`,
+        quiz: { q:'You see a gene labeled as a "tumor suppressor" in the explorer. Which statement is most accurate about this gene?', opts:['One mutant copy is enough to cause cancer','Its normal role is to promote uncontrolled cell division','Both copies must usually be inactivated for cancer-promoting effects','It always drives cancer through gene amplification'], correct:2, exp:'Tumor suppressors follow the Two-Hit Hypothesis — both functional copies must be lost for the cancer-promoting effect. This is because tumor suppressors are "recessive" at the cellular level: as long as one functional copy remains, it can perform the protective function (controlling cell cycle, promoting apoptosis, repairing DNA).' }
+      },
+    ]
+  },
+  intermediate: {
+    id:'intermediate', label:'Cancer Genomics Deep Dive', color:'#00d4ff',
+    modules: [
+      { id:'i0', title:'Breast Cancer Genomics (BRCA1/2)', icon:'🎀', duration:'60 min', free:false, xp:250, section:'Cancer Types', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>Upgrade to GeneLens Pro to access the full Intermediate curriculum — 24 in-depth modules covering breast, lung, colorectal, and brain cancer genomics, signaling pathway mechanics, and clinical mutation interpretation.</div>', quiz:null },
+      { id:'i1', title:'Lung Cancer Driver Mutations', icon:'🫁', duration:'55 min', free:false, xp:250, section:'Cancer Types', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>Covers EGFR, KRAS, ALK, ROS1, RET, MET, and KEAP1 alterations in non-small cell and small cell lung cancer.</div>', quiz:null },
+      { id:'i2', title:'PI3K/AKT/mTOR Pathway In-Depth', icon:'⚙️', duration:'70 min', free:false, xp:300, section:'Pathways', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>Deep dive into the PI3K/AKT/mTOR cascade: feedback loops, compensatory pathways, and all approved pathway inhibitors.</div>', quiz:null },
+      { id:'i3', title:'Immunotherapy Biomarkers', icon:'🛡️', duration:'65 min', free:false, xp:300, section:'Pathways', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>TMB, MSI, PD-L1 scoring, tumor inflammation score, HLA typing, and emerging predictive biomarkers for checkpoint inhibitors.</div>', quiz:null },
+      { id:'i4', title:'Reading Mutation Landscapes', icon:'📊', duration:'50 min', free:false, xp:250, section:'Data Interpretation', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>Interpreting OncoPrint, waterfall plots, oncoprint matrices, co-mutation analysis, and mutual exclusivity from TCGA data.</div>', quiz:null },
+    ]
+  },
+  advanced: {
+    id:'advanced', label:'Computational Oncogenomics', color:'#7c3aed',
+    modules: [
+      { id:'a0', title:'Variant Calling & Annotation', icon:'💻', duration:'90 min', free:false, xp:400, section:'Bioinformatics', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>NGS alignment (BWA-MEM), variant calling (GATK Mutect2), annotation (VEP, OncoKB), and filtering for somatic mutations.</div>', quiz:null },
+      { id:'a1', title:'Somatic vs Germline Mutations', icon:'🧫', duration:'75 min', free:false, xp:400, section:'Bioinformatics', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>Paired tumor-normal analysis, germline calling, allele frequencies in WES vs WGS, and clinical reporting standards.</div>', quiz:null },
+      { id:'a2', title:'Copy Number Variation Analysis', icon:'📈', duration:'80 min', free:false, xp:400, section:'Advanced Analysis', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>CNV detection from sequencing data, GISTIC2, focal vs. arm-level events, and clinical impact of amplifications/deletions.</div>', quiz:null },
+      { id:'a3', title:'Tumor Mutational Burden (TMB)', icon:'🔢', duration:'60 min', free:false, xp:350, section:'Advanced Analysis', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>TMB calculation from WES and panel data, cutoff selection, comparison across assays, and clinical utility in immunotherapy selection.</div>', quiz:null },
+      { id:'a4', title:'Machine Learning in Oncogenomics', icon:'🤖', duration:'120 min', free:false, xp:500, section:'Computational', content:'<div class="info-box"><div class="info-box-title">🔒 Pro Module</div>Random forests for driver gene prediction, deep learning on mutation signatures, survival analysis with genomic features, and multi-omics integration.</div>', quiz:null },
+    ]
+  }
+};
+
+// ── RENDERING ──
+function getCompletedLessons(pathId) {
+  const path = PATHS[pathId];
+  return path.modules.filter(m => state.completed[m.id]).length;
+}
+
+function getProgress(pathId) {
+  const path = PATHS[pathId];
+  const free = path.modules.filter(m => m.free).length;
+  const done = getCompletedLessons(pathId);
+  return free > 0 ? Math.round((done / free) * 100) : 0;
+}
+
+function switchPath(pathId, btn) {
+  currentPathId = pathId;
+  state.currentPath = pathId;
+  currentLessonIdx = 0;
+  document.querySelectorAll('.path-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active', pathId[0]);
+  renderSidebar();
+  renderLesson(0);
+}
+
+function renderSidebar() {
+  const path = PATHS[currentPathId];
+  const progress = getProgress(currentPathId);
+  const colorMap = { beginner:'var(--accent3)', intermediate:'var(--accent)', advanced:'#a78bfa' };
+  document.getElementById('progressBar').style.width = progress + '%';
+  document.getElementById('progressBar').style.background = colorMap[currentPathId];
+  document.getElementById('progressPct').textContent = progress + '%';
+  document.getElementById('progressLabel').textContent = `${getCompletedLessons(currentPathId)}/${path.modules.filter(m=>m.free).length} free lessons`;
+
+  const container = document.getElementById('sidebarModules');
+  let currentSection = '';
+  container.innerHTML = '';
+  path.modules.forEach((m, idx) => {
+    if (m.section !== currentSection) {
+      currentSection = m.section;
+      const gh = document.createElement('div');
+      gh.className = 'module-group-header';
+      gh.textContent = m.section;
+      container.appendChild(gh);
+    }
+    const isDone = !!state.completed[m.id];
+    const isActive = idx === currentLessonIdx;
+    const isLocked = !m.free;
+    const div = document.createElement('div');
+    div.className = `module-item ${isActive ? 'active' : ''} ${isLocked ? 'locked' : ''}`;
+    div.innerHTML = `
+      <div class="mi-icon ${isDone ? 'done' : isActive ? 'active-icon' : 'locked-icon'}">${isDone ? '✅' : isLocked ? '🔒' : m.icon}</div>
+      <div class="mi-text">
+        <div class="mi-title">${m.title}</div>
+        <div class="mi-meta">${m.duration} · +${m.xp} XP</div>
+      </div>
+      ${isDone ? '<div class="mi-check">✓</div>' : ''}`;
+    if (!isLocked) div.addEventListener('click', () => { currentLessonIdx = idx; renderSidebar(); renderLesson(idx); });
+    container.appendChild(div);
+  });
+}
+
+// ── LESSON PREVIEW POPUP ──
+// Each lesson shows a brief "what you'll learn" card before revealing content
+const LESSON_PREVIEWS = {
+  b0: ['What GeneLens is and why it beats textbooks','How to earn XP and unlock achievements','A preview of everything you will master'],
+  b1: ['What DNA actually is — the molecule that stores life','Why A always pairs with T (and G with C)','Key numbers every genomics student should know'],
+  b2: ['How DNA instructions become real proteins (3 steps)','The difference between transcription and translation','Why proteins are the workers that run your cells'],
+  b3: ['The 6 types of mutation and what each one does','Why some mutations cause cancer and others don\'t','Somatic vs. germline — and why the difference matters'],
+  b4: ['What an oncogene is and how it drives cancer','Why KRAS is mutated in 1 in 4 cancers','The "stuck gas pedal" model of oncogene activation'],
+  b5: ['Why tumor suppressors are the cell\'s braking system','Knudson\'s Two-Hit Hypothesis explained simply','How BRCA1/2 mutations lead to hereditary cancer'],
+  b6: ['All 10 Hallmarks of Cancer — what they are and why they matter','How each hallmark connects to a real treatment','Why one mutation isn\'t enough — cancer is a process'],
+  b7: ['What a kinase is and why cancer loves broken ones','How targeted drugs like Gleevec and Osimertinib work','Why drug resistance develops and how doctors fight it'],
+  b8: ['How to read a real genomic mutation report','What allele frequency and TMB mean in plain English','How doctors use this data to choose your treatment'],
+  b9: ['How your immune system already fights cancer','Why PD-1 inhibitors unleashed a revolution in oncology','Who responds to immunotherapy and how doctors predict it'],
+  b10:['How to use the GeneLens Gene Explorer like a pro','A navigation challenge using 5 real cancer genes','A recap of everything you have learned in this path'],
+};
+
+function showLessonPreview(lesson, idx, onStart) {
+  // Skip preview if already completed or no preview defined
+  const bullets = LESSON_PREVIEWS[lesson.id];
+  if (!bullets || state.completed[lesson.id]) { onStart(); return; }
+
+  const wrap = document.getElementById('lessonWrap');
+  const colorMap = { beginner:'#10b981', intermediate:'#00d4ff', advanced:'#7c3aed' };
+  const col = colorMap[currentPathId];
+  const path = PATHS[currentPathId];
+
+  wrap.innerHTML = `
+    <div style="max-width:520px;margin:4rem auto 0;animation:fadeSlide 0.4s ease">
+      <div style="text-align:center;margin-bottom:1.5rem">
+        <div style="font-size:3rem;margin-bottom:0.75rem">${lesson.icon}</div>
+        <div style="font-size:0.75rem;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:${col};margin-bottom:0.5rem">Module ${idx+1} of ${path.modules.length} · ${lesson.duration}</div>
+        <h2 style="font-size:1.6rem;font-weight:700;margin-bottom:0.5rem">${lesson.title}</h2>
+        <p style="color:var(--text2);font-size:0.95rem">Here's what you'll learn in this module:</p>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:16px;padding:1.5rem;margin-bottom:1.5rem">
+        ${bullets.map(b => `
+          <div style="display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border2)">
+            <span style="color:${col};font-weight:700;flex-shrink:0;font-size:1rem">→</span>
+            <span style="font-size:0.92rem;color:var(--text2);line-height:1.5">${b}</span>
+          </div>`).join('').replace(/<div[^>]*>([^<]|<(?!\/div))*<\/div>\s*$/, d => d.replace('border-bottom:1px solid var(--border2)', 'border-bottom:none'))}
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:8px;border-top:1px solid var(--border2)">
+          <span style="font-size:0.8rem;color:var(--text3)">⚡ Complete this lesson to earn</span>
+          <span style="font-weight:700;color:${col}">${lesson.xp} XP</span>
+        </div>
+      </div>
+      <button onclick="(${onStart.toString()})()" style="width:100%;padding:1rem;background:linear-gradient(135deg,${col},${col}99);color:#000;font-weight:700;border:none;border-radius:12px;cursor:pointer;font-size:1rem;font-family:Inter,sans-serif;transition:opacity 0.2s" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">
+        Let's start →
+      </button>
+      ${idx > 0 ? `<button onclick="goLesson(${idx-1})" style="width:100%;margin-top:8px;padding:0.7rem;background:transparent;color:var(--text2);border:1px solid var(--border2);border-radius:10px;cursor:pointer;font-size:0.9rem;font-family:Inter,sans-serif">← Go back</button>` : ''}
+    </div>`;
+  document.getElementById('mainArea').scrollTo(0,0);
+}
+
+function renderLesson(idx) {
+  const path = PATHS[currentPathId];
+  const lesson = path.modules[idx];
+  if (!lesson) return;
+
+  if (idx >= path.modules.length) { showCompletion(); return; }
+
+  // Show preview card first (unless already completed)
+  showLessonPreview(lesson, idx, () => renderLessonContent(idx));
+
+  // If already completed, go straight to content
+  if (state.completed[lesson.id]) renderLessonContent(idx);
+}
+
+function renderLessonContent(idx) {
+  const path = PATHS[currentPathId];
+  const lesson = path.modules[idx];
+  if (!lesson) return;
+
+  // Store quiz data globally so answerKC never gets strings via onclick
+  _activeQuiz = lesson.quiz ? { ...lesson.quiz, lessonId: lesson.id, xp: lesson.xp } : null;
+
+  const colorMap = { beginner:'#10b981', intermediate:'#00d4ff', advanced:'#7c3aed' };
+  const bgMap = { beginner:'rgba(16,185,129,0.12)', intermediate:'rgba(0,212,255,0.12)', advanced:'rgba(124,58,237,0.12)' };
+  const pathLabel = { beginner:'🌱 Beginner', intermediate:'⚡ Intermediate', advanced:'🚀 Advanced' };
+  const col = colorMap[currentPathId];
+
+  const wrap = document.getElementById('lessonWrap');
+
+  wrap.innerHTML = `
+    <div class="lesson-header">
+      <div class="lesson-breadcrumb">GeneLens AI → ${pathLabel[currentPathId]} → <span>${lesson.section}</span></div>
+      <div class="lesson-title-row">
+        <div class="lesson-num-badge" style="background:${bgMap[currentPathId]};color:${col}">${lesson.icon}</div>
+        <div class="lesson-title">${lesson.title}</div>
+      </div>
+      <div class="lesson-meta-row">
+        <div class="meta-chip">⏱ ${lesson.duration}</div>
+        <div class="meta-chip">⚡ +${lesson.xp} XP on completion</div>
+        <div class="meta-chip" style="color:${col}">Module ${idx + 1} of ${path.modules.length}</div>
+        ${state.completed[lesson.id] ? '<div class="meta-chip" style="color:var(--accent3)">✅ Completed</div>' : ''}
+      </div>
+    </div>
+    <div class="lesson-content">${lesson.content}</div>
+    ${lesson.quiz ? `
+    <div class="kc-section">
+      <div class="kc-title">🧠 Knowledge Check</div>
+      <div class="kc-question">${lesson.quiz.q}</div>
+      <div class="kc-options">
+        ${lesson.quiz.opts.map((o,i) => `<button class="kc-btn" onclick="answerKC(${i})">${o}</button>`).join('')}
+      </div>
+      <div class="kc-feedback" id="kcFeedback"></div>
+    </div>` : ''}
+    <div class="lesson-nav">
+      <button class="nav-btn prev" onclick="goLesson(${idx - 1})" ${idx === 0 ? 'disabled' : ''}>← Previous</button>
+      <button class="nav-btn next" id="lessonNextBtn" onclick="goLesson(${idx + 1})" ${!lesson.quiz || state.completed[lesson.id] ? '' : 'disabled'}>
+        ${idx === path.modules.length - 1 ? '🎉 Complete Path' : 'Next Lesson →'}
+      </button>
+    </div>`;
+
+  // Restore answered state if already completed
+  if (state.completed[lesson.id] && lesson.quiz) {
+    const btns = document.querySelectorAll('.kc-btn');
+    btns.forEach((b, i) => { b.disabled = true; if (i === lesson.quiz.correct) b.classList.add('correct'); });
+    document.getElementById('lessonNextBtn').disabled = false;
+  }
+
+  // Draw lesson diagrams after DOM settles
+  setTimeout(() => {
+    if (lesson.id === 'b1') drawBasePairs();
+    if (lesson.id === 'b2') drawCentralDogma();
+    if (lesson.id === 'b6') drawHallmarks();
+  }, 80);
+
+  document.getElementById('mainArea').scrollTo(0,0);
+}
+
+// ── FIXED answerKC — reads from _activeQuiz, no strings in onclick ──
+function answerKC(selected) {
+  if (!_activeQuiz) return;
+  const { correct, exp, lessonId, xp } = _activeQuiz;
+  const btns = document.querySelectorAll('.kc-btn');
+  btns.forEach(b => b.disabled = true);
+  const isCorrect = selected === correct;
+  if (btns[selected]) btns[selected].classList.add(isCorrect ? 'correct' : 'wrong');
+  if (btns[correct]) btns[correct].classList.add('correct');
+  const fb = document.getElementById('kcFeedback');
+  fb.className = `kc-feedback show ${isCorrect ? 'correct' : 'wrong'}`;
+  fb.innerHTML = (isCorrect ? '✅ Correct! ' : '❌ Not quite — ') + exp;
+  document.getElementById('lessonNextBtn').disabled = false;
+  if (!state.completed[lessonId]) {
+    state.completed[lessonId] = true;
+    state.xp = (state.xp || 0) + xp;
+    saveState();
+    document.getElementById('xpDisplay').textContent = state.xp;
+    renderSidebar();
+    checkAchievements(lessonId);
+  }
+}
+
+function goLesson(idx) {
+  const path = PATHS[currentPathId];
+  if (idx < 0 || idx > path.modules.length) return;
+  if (idx === path.modules.length) { showCompletion(); return; }
+  currentLessonIdx = idx;
+  state.currentLesson = idx;
+  saveState();
+  renderSidebar();
+  renderLesson(idx);
+}
+
+function showCompletion() {
+  const path = PATHS[currentPathId];
+  const completed = getCompletedLessons(currentPathId);
+  const wrap = document.getElementById('lessonWrap');
+  wrap.innerHTML = `
+    <div class="completion-screen show">
+      <div class="comp-emoji">🎓</div>
+      <div class="comp-title">Path Complete!</div>
+      <div class="comp-desc">You've finished the ${path.label} path. Amazing work!</div>
+      <div class="comp-stats">
+        <div class="comp-stat"><div class="comp-stat-val">${completed}</div><div class="comp-stat-label">Lessons Done</div></div>
+        <div class="comp-stat"><div class="comp-stat-val">${state.xp}</div><div class="comp-stat-label">Total XP</div></div>
+        <div class="comp-stat"><div class="comp-stat-val">3</div><div class="comp-stat-label">Badges Earned</div></div>
+      </div>
+      <div class="badge-grid">
+        <div class="badge-card"><div class="badge-icon">🧬</div><div class="badge-name">DNA Master</div><div class="badge-desc">Completed DNA & Genes</div></div>
+        <div class="badge-card"><div class="badge-icon">🚀</div><div class="badge-name">Oncogene Expert</div><div class="badge-desc">Mastered oncogenes</div></div>
+        <div class="badge-card"><div class="badge-icon">🛡️</div><div class="badge-name">Genome Guardian</div><div class="badge-desc">Understood tumor suppressors</div></div>
+        <div class="badge-card"><div class="badge-icon">🏆</div><div class="badge-name">Path Pioneer</div><div class="badge-desc">Completed full path</div></div>
+      </div>
+      <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap">
+        <a href="explorer.html" class="btn-primary">🗺️ Explore the Genome</a>
+        <button class="btn-primary" style="background:linear-gradient(135deg,var(--accent2),#9b59b6)" onclick="switchPath('intermediate', document.querySelector('.path-tab.i'))">🚀 Upgrade to Intermediate</button>
+      </div>
+    </div>`;
+}
+
+function checkAchievements(lessonId) {
+  const achievements = [
+    { id:'first', trigger:'b0', name:'First Step!', desc:'Completed your first lesson' },
+    { id:'dna', trigger:'b1', name:'DNA Decoded', desc:'Mastered the double helix' },
+    { id:'onco', trigger:'b4', name:'Oncogene Expert', desc:'Understood how proto-oncogenes become oncogenes' },
+    { id:'brakes', trigger:'b5', name:'Genome Guardian', desc:'Learned the two-hit hypothesis' },
+    { id:'hallmarks', trigger:'b6', name:'Hallmark Scholar', desc:'Mastered all 10 cancer hallmarks' },
+    { id:'clinical', trigger:'b8', name:'Clinical Reader', desc:'Can interpret a genomic mutation report' },
+  ];
+  const ach = achievements.find(a => a.trigger === lessonId);
+  if (ach) showAchievement(ach.name, ach.desc);
+}
+
+function showAchievement(name, desc) {
+  const popup = document.getElementById('achPopup');
+  document.getElementById('achName').textContent = '🏆 ' + name;
+  document.getElementById('achDesc').textContent = desc;
+  popup.classList.add('show');
+  setTimeout(() => popup.classList.remove('show'), 4000);
+}
+
+// ── LESSON DIAGRAMS ──
+function drawBasePairs() {
+  const canvas = document.getElementById('dnaBasePairCanvas');
+  if (!canvas) return;
+  canvas.width = canvas.getBoundingClientRect().width || 620; canvas.height = 120;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgba(10,22,40,0.3)'; ctx.fillRect(0,0,canvas.width,120);
+  const pairs = [['A','T','#00d4ff','#0099cc'],['T','A','#0099cc','#00d4ff'],['G','C','#10b981','#059669'],['C','G','#059669','#10b981'],['A','T','#00d4ff','#0099cc'],['G','C','#10b981','#059669']];
+  const cw = canvas.width, ch = 120, bw = cw / pairs.length;
+  pairs.forEach((p, i) => {
+    const x = i * bw + bw/2, y = ch/2;
+    ctx.beginPath(); ctx.moveTo(x-30,y); ctx.lineTo(x+30,y);
+    ctx.strokeStyle='rgba(255,255,255,0.2)'; ctx.lineWidth=2; ctx.stroke();
+    [[-30,p[0],p[2]],[30,p[1],p[3]]].forEach(([dx,label,col]) => {
+      ctx.beginPath(); ctx.arc(x+dx,y,14,0,Math.PI*2); ctx.fillStyle=col+'33'; ctx.fill();
+      ctx.strokeStyle=col; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.fillStyle=col; ctx.font='bold 11px Inter'; ctx.textAlign='center'; ctx.fillText(label,x+dx,y+4);
+    });
+    ctx.fillStyle='#64748b'; ctx.font='9px Inter'; ctx.textAlign='center';
+    ctx.fillText(p[0]+'-'+p[1],x,ch-8);
+  });
+}
+
+function drawCentralDogma() {
+  const canvas = document.getElementById('centralDogmaCanvas');
+  if (!canvas) return;
+  canvas.width = canvas.getBoundingClientRect().width || 620; canvas.height = 80;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle='rgba(10,22,40,0.3)'; ctx.fillRect(0,0,canvas.width,80);
+  const steps = [['DNA','#3b82f6'],['Transcription','#94a3b8'],['mRNA','#7c3aed'],['Translation','#94a3b8'],['Protein','#10b981']];
+  const w = canvas.width, h = 80, sw = w / steps.length;
+  steps.forEach((s, i) => {
+    const x = i * sw + sw/2, y = h/2;
+    const isArrow = s[0]==='Transcription'||s[0]==='Translation';
+    if (isArrow) {
+      ctx.fillStyle=s[1]; ctx.font='11px Inter'; ctx.textAlign='center'; ctx.fillText(s[0],x,y-6);
+      ctx.fillStyle=s[1]; ctx.font='14px Inter'; ctx.fillText('→',x,y+10);
+    } else {
+      ctx.beginPath(); ctx.roundRect(x-40,y-16,80,32,7); ctx.fillStyle=s[1]+'22'; ctx.fill();
+      ctx.strokeStyle=s[1]; ctx.lineWidth=1.5; ctx.stroke();
+      ctx.fillStyle=s[1]; ctx.font='700 12px Space Grotesk'; ctx.textAlign='center'; ctx.fillText(s[0],x,y+5);
+    }
+  });
+}
+
+function drawHallmarks() {
+  const canvas = document.getElementById('hallmarksCanvas');
+  if (!canvas) return;
+  canvas.width = canvas.getBoundingClientRect().width || 620; canvas.height = 300;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle='rgba(10,22,40,0.3)'; ctx.fillRect(0,0,canvas.width,300);
+  const cx = canvas.width/2, cy = 150, r = 120;
+  const hallmarks = [
+    {label:'Sustained\nProliferation',col:'#ef4444'},{label:'Evading\nGrowth Supp.',col:'#3b82f6'},
+    {label:'Resisting\nApoptosis',col:'#f59e0b'},{label:'Replicative\nImmortality',col:'#10b981'},
+    {label:'Inducing\nAngiogenesis',col:'#8b5cf6'},{label:'Invasion &\nMetastasis',col:'#f87171'},
+    {label:'Avoiding\nImmune Dest.',col:'#22d3ee'},{label:'Tumor\nInflammation',col:'#fb923c'},
+    {label:'Genome\nInstability',col:'#a78bfa'},{label:'Metabolic\nReprogram.',col:'#4ade80'},
+  ];
+  hallmarks.forEach((h, i) => {
+    const angle = (i / hallmarks.length) * Math.PI * 2 - Math.PI/2;
+    const x = cx + r * Math.cos(angle), y = cy + r * Math.sin(angle);
+    ctx.beginPath(); ctx.arc(x,y,22,0,Math.PI*2); ctx.fillStyle=h.col+'22'; ctx.fill();
+    ctx.strokeStyle=h.col; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.strokeStyle=h.col+'33'; ctx.lineWidth=1; ctx.stroke();
+    const lines = h.label.split('\n');
+    lines.forEach((line, li) => {
+      ctx.fillStyle=h.col; ctx.font='600 8px Inter'; ctx.textAlign='center';
+      ctx.fillText(line, x, y + (li - (lines.length-1)/2)*10 + 3);
+    });
+  });
+  ctx.beginPath(); ctx.arc(cx,cy,28,0,Math.PI*2); ctx.fillStyle='rgba(0,212,255,0.1)'; ctx.fill();
+  ctx.strokeStyle='rgba(0,212,255,0.4)'; ctx.lineWidth=2; ctx.stroke();
+  ctx.fillStyle='#00d4ff'; ctx.font='700 11px Space Grotesk'; ctx.textAlign='center'; ctx.fillText('CANCER',cx,cy+4);
+}
+
+// ── XP DISPLAY ──
+document.getElementById('xpDisplay').textContent = state.xp || 0;
+document.getElementById('streakDisplay').textContent = state.streak || 1;
+
+// ── INIT ──
+renderSidebar();
+renderLesson(currentLessonIdx);
+</script>
+</body>
+</html>
