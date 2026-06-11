@@ -387,6 +387,13 @@ html, body {
   .dna-base { width: 20px; height: 20px; font-size: 0.62rem; }
 }
 
+/* ── Nav responsive ───────────────────────────── */
+@media (max-width: 640px) {
+  .nav-links  { display: none !important; }
+  .nav-xp     { display: none !important; }
+  .nav-hamburger { display: flex !important; }
+}
+
 /* ── General responsive ───────────────────────── */
 @media (max-width: 768px) {
   .section-pad { padding: 2.5rem 1rem; }
