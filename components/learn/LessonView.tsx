@@ -74,10 +74,10 @@ export default function LessonView({ lessons, initialIdx, completed, onComplete,
       {/* Lesson content */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '2rem' }}>
         <StepEngine
+          key={lesson.id}
           lesson={lesson}
           isCompleted={!!completed[lesson.id]}
           onDone={handleLessonDone}
-          onNext={() => lessonIdx < lessons.length - 1 && setLessonIdx(i => i + 1)}
         />
       </div>
     </div>
