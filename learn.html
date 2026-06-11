@@ -159,6 +159,37 @@
     .btn-primary{background:linear-gradient(135deg,var(--accent),#0099cc);color:#000;font-weight:700;padding:0.85rem 2rem;border-radius:10px;border:none;cursor:pointer;font-size:1rem;font-family:'Inter',sans-serif;transition:opacity 0.2s;}
     .btn-primary:hover{opacity:0.9;}
     @keyframes fadeSlide{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    /* LEVEL / TOPBAR */
+    .level-badge{display:flex;align-items:center;gap:5px;background:rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.3);border-radius:20px;padding:4px 10px;font-size:0.75rem;font-weight:700;color:#a78bfa;cursor:pointer;transition:all 0.2s;white-space:nowrap;}
+    .level-badge:hover{background:rgba(124,58,237,0.22);}
+    .icon-btn{width:30px;height:30px;border-radius:8px;background:transparent;border:1px solid var(--border2);color:var(--text2);cursor:pointer;font-size:1rem;display:inline-flex;align-items:center;justify-content:center;transition:all 0.2s;font-family:inherit;position:relative;}
+    .icon-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .daily-dot{position:absolute;top:-3px;right:-3px;width:7px;height:7px;background:#10b981;border-radius:50%;border:2px solid var(--bg);}
+    /* CONFETTI */
+    .confetti-piece{position:fixed;width:8px;height:10px;top:-15px;border-radius:2px;pointer-events:none;z-index:9999;animation:confettiFall 1.3s ease-in forwards;}
+    @keyframes confettiFall{0%{opacity:1;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(100vh) rotate(720deg)}}
+    /* MODAL */
+    .modal-overlay{position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:1rem;}
+    .modal-overlay.show{display:flex;}
+    .modal-box{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:1.5rem;max-width:440px;width:100%;max-height:88vh;overflow-y:auto;animation:fadeSlide 0.3s ease;}
+    .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;}
+    .modal-title{font-size:1.05rem;font-weight:700;}
+    .modal-close{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:1.2rem;padding:4px 8px;border-radius:6px;line-height:1;}
+    .modal-close:hover{color:var(--text);background:rgba(255,255,255,0.06);}
+    /* FLASH CARDS */
+    .flash-card-wrap{perspective:1000px;cursor:pointer;margin-bottom:1rem;}
+    .flash-card{width:100%;min-height:160px;position:relative;transform-style:preserve-3d;transition:transform 0.45s;}
+    .flash-card.flipped{transform:rotateY(180deg);}
+    .flash-front,.flash-back{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:12px;padding:1.25rem;display:flex;align-items:center;justify-content:center;text-align:center;}
+    .flash-front{background:var(--card);border:1px solid var(--border);}
+    .flash-back{background:linear-gradient(135deg,rgba(0,212,255,0.08),rgba(124,58,237,0.08));border:1px solid var(--border);transform:rotateY(180deg);}
+    /* ACHIEVEMENT BADGES */
+    .ach-badge-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:0.75rem;}
+    .ach-badge{padding:0.65rem 0.4rem;border-radius:10px;border:1px solid var(--border2);text-align:center;background:rgba(255,255,255,0.02);transition:all 0.2s;}
+    .ach-badge.earned{border-color:rgba(245,158,11,0.35);background:rgba(245,158,11,0.07);}
+    .ach-badge-icon{font-size:1.4rem;}
+    .ach-badge-name{font-size:0.65rem;font-weight:700;margin-top:3px;}
+    .ach-badge-desc{font-size:0.6rem;color:var(--text3);margin-top:2px;line-height:1.3;}
     /* STEP UI */
     .step-dots{display:flex;gap:8px;justify-content:center;margin-bottom:1.5rem;}
     .step-dot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,0.1);transition:all 0.3s;}
@@ -176,8 +207,12 @@
   <div class="topbar-sep"></div>
   <span class="topbar-title">Learning Paths</span>
   <div class="topbar-right">
+    <div class="level-badge" id="levelBadge" onclick="showAchievements()">Lv 1 Gene Novice</div>
     <div class="xp-badge">⚡ <span id="xpDisplay">0</span> XP</div>
     <div class="streak-badge">🔥 <span id="streakDisplay">1</span> day streak</div>
+    <button class="icon-btn" id="dailyBtn" onclick="showDailyChallenge()" title="Daily Challenge">📅</button>
+    <button class="icon-btn" onclick="showFlashCards()" title="Flash Card Review">🎴</button>
+    <button class="icon-btn" onclick="showSettings()" title="Settings">⚙️</button>
     <a class="back-btn" href="index.html">← Home</a>
   </div>
 </div>
@@ -205,6 +240,63 @@
     <div class="lesson-wrap" id="lessonWrap"></div>
   </div>
 
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeModal('settingsModal')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">⚙️ Settings</div>
+      <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.75rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:0.85rem 1rem;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid var(--border2)">
+        <div><div style="font-size:0.9rem;font-weight:600">Reset Progress</div><div style="font-size:0.72rem;color:var(--text3)">Clear all XP, completed lessons, and streak</div></div>
+        <button onclick="confirmReset()" style="padding:5px 12px;border-radius:7px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);color:#f87171;cursor:pointer;font-size:0.8rem;font-weight:600;font-family:Inter,sans-serif">Reset</button>
+      </div>
+      <div style="padding:0.85rem 1rem;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid var(--border2)">
+        <div style="font-size:0.9rem;font-weight:600;margin-bottom:0.4rem">Keyboard Shortcuts</div>
+        <div style="font-size:0.8rem;color:var(--text2);display:flex;flex-direction:column;gap:4px">
+          <div><kbd style="background:rgba(255,255,255,0.08);border:1px solid var(--border2);border-radius:4px;padding:1px 6px;font-size:0.72rem">→</kbd> or <kbd style="background:rgba(255,255,255,0.08);border:1px solid var(--border2);border-radius:4px;padding:1px 6px;font-size:0.72rem">Enter</kbd> — Next step</div>
+          <div><kbd style="background:rgba(255,255,255,0.08);border:1px solid var(--border2);border-radius:4px;padding:1px 6px;font-size:0.72rem">←</kbd> — Previous step</div>
+          <div><kbd style="background:rgba(255,255,255,0.08);border:1px solid var(--border2);border-radius:4px;padding:1px 6px;font-size:0.72rem">?</kbd> — Open this panel</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DAILY CHALLENGE MODAL -->
+<div class="modal-overlay" id="dailyModal" onclick="if(event.target===this)closeModal('dailyModal')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">📅 Daily Challenge</div>
+      <button class="modal-close" onclick="closeModal('dailyModal')">✕</button>
+    </div>
+    <div id="dailyContent"></div>
+  </div>
+</div>
+
+<!-- ACHIEVEMENTS MODAL -->
+<div class="modal-overlay" id="achModal" onclick="if(event.target===this)closeModal('achModal')">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-header">
+      <div class="modal-title">🏆 Achievements & Level</div>
+      <button class="modal-close" onclick="closeModal('achModal')">✕</button>
+    </div>
+    <div id="achModalContent"></div>
+  </div>
+</div>
+
+<!-- FLASH CARD MODAL -->
+<div class="modal-overlay" id="flashModal" onclick="if(event.target===this)closeModal('flashModal')">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-header">
+      <div class="modal-title">🎴 Flash Card Review</div>
+      <button class="modal-close" onclick="closeModal('flashModal')">✕</button>
+    </div>
+    <div id="flashContent"></div>
+  </div>
 </div>
 
 <!-- ACHIEVEMENT POPUP -->
@@ -334,6 +426,7 @@ const PATHS = {
         steps: [
           { type:'hook', emoji:'🔧', stat:'~20,000', label:'genes in your genome can produce over 100,000 distinct proteins', sub:'Alternative splicing means one gene can make many protein variants. The central dogma is the blueprint that explains how genetic instructions become the workers that run your cells.', color:'#7c3aed' },
           { type:'learn' },
+          { type:'game', gameId:'codonDecoder', title:'🧬 Codon Decoder', instructions:'Translate each mRNA codon to its amino acid. AUG = Start, UAA/UAG/UGA = Stop. Know your 8 essential codons!' },
           { type:'quiz' }
         ]
       },
@@ -373,6 +466,7 @@ const PATHS = {
         steps: [
           { type:'hook', emoji:'⚡', stat:'10,000+', label:'DNA lesions happen in each of your cells — every single day', sub:'Your repair machinery fixes nearly all of them. The ones that slip through become mutations. And very rarely, just the right combination causes cancer.', color:'#f59e0b' },
           { type:'learn' },
+          { type:'game', gameId:'mutSpotter', title:'🔬 Mutation Spotter', instructions:'Compare normal and mutant DNA sequences. Identify the type of mutation that occurred.' },
           { type:'quiz' }
         ]
       },
@@ -402,6 +496,7 @@ const PATHS = {
           { type:'hook', emoji:'🚀', stat:'25%', label:'of ALL human cancers carry a KRAS mutation', sub:'That\'s 1 in 4 cancers. KRAS was considered "undruggable" for 40 years — until Sotorasib changed everything in 2021. Understanding why requires understanding oncogenes.', color:'#ef4444' },
           { type:'learn' },
           { type:'game', gameId:'krasToggle', title:'⚙️ KRAS: Normal vs Mutant', instructions:'Toggle between normal and mutant KRAS. See how a single amino acid change permanently activates the entire proliferation cascade.' },
+          { type:'game', gameId:'drugMatch', title:'💊 Drug-Target Match', instructions:'Match each targeted therapy to the gene it inhibits. 5 pairs — drag from drugs to targets.' },
           { type:'quiz' }
         ]
       },
@@ -532,6 +627,7 @@ const PATHS = {
         steps: [
           { type:'hook', emoji:'📋', stat:'1 Test', label:'can identify 300+ actionable mutations from a single tumor biopsy', sub:'Next-generation sequencing produces a mutation report that oncologists use to choose targeted therapy. Learning to read it is a core skill in modern precision medicine.', color:'#10b981' },
           { type:'learn' },
+          { type:'game', gameId:'cancerProfiler', title:'🏥 Cancer Profiler', instructions:'Given a real mutation profile, identify the most likely cancer type. Cases inspired by real clinical datasets.' },
           { type:'quiz' }
         ]
       },
@@ -602,6 +698,7 @@ const PATHS = {
         steps: [
           { type:'hook', emoji:'🗺️', stat:'You\'re Ready!', label:'Navigate the real cancer genome — starting right now', sub:'Everything you learned in this path is visualized live in the GeneLens Explorer. TP53, KRAS, BRCA1 — they\'re all waiting for you on the map.', color:'#10b981' },
           { type:'learn' },
+          { type:'game', gameId:'pathwayOrder', title:'⚡ Pathway Builder', instructions:'Click the RAS/MAPK cascade nodes in the correct signal order — from growth factor all the way to the nucleus.' },
           { type:'quiz' }
         ]
       },
@@ -875,11 +972,13 @@ function goLesson(idx) {
   currentLessonIdx = idx;
   state.currentLesson = idx;
   saveState();
+  updateHash();
   renderSidebar();
   renderLesson(idx);
 }
 
 function showCompletion() {
+  launchConfetti();
   const path = PATHS[currentPathId];
   const completed = getCompletedLessons(currentPathId);
   const wrap = document.getElementById('lessonWrap');
@@ -907,15 +1006,7 @@ function showCompletion() {
 }
 
 function checkAchievements(lessonId) {
-  const achievements = [
-    { id:'first', trigger:'b0', name:'First Step!', desc:'Completed your first lesson' },
-    { id:'dna', trigger:'b1', name:'DNA Decoded', desc:'Mastered the double helix' },
-    { id:'onco', trigger:'b4', name:'Oncogene Expert', desc:'Understood how proto-oncogenes become oncogenes' },
-    { id:'brakes', trigger:'b5', name:'Genome Guardian', desc:'Learned the two-hit hypothesis' },
-    { id:'hallmarks', trigger:'b6', name:'Hallmark Scholar', desc:'Mastered all 10 cancer hallmarks' },
-    { id:'clinical', trigger:'b8', name:'Clinical Reader', desc:'Can interpret a genomic mutation report' },
-  ];
-  const ach = achievements.find(a => a.trigger === lessonId);
+  const ach = ALL_ACHIEVEMENTS.find(a => a.trigger === lessonId);
   if (ach) showAchievement(ach.name, ach.desc);
 }
 
@@ -1007,12 +1098,17 @@ function renderStepCard(lessonIdx, stepIdx) {
     }
     if (step.type === 'game') {
       const gmap = {
-        basePairing: initBasePairingGame,
-        krasToggle:  initKRASGame,
-        twoHit:      initTwoHitGame,
-        hallmarks:   initHallmarksGame,
-        cascade:     initCascadeGame,
-        immunoSim:   initImmunoGame,
+        basePairing:    initBasePairingGame,
+        krasToggle:     initKRASGame,
+        twoHit:         initTwoHitGame,
+        hallmarks:      initHallmarksGame,
+        cascade:        initCascadeGame,
+        immunoSim:      initImmunoGame,
+        mutSpotter:     initMutationSpotterGame,
+        drugMatch:      initDrugMatchGame,
+        pathwayOrder:   initPathwayOrderGame,
+        cancerProfiler: initCancerProfilerGame,
+        codonDecoder:   initCodonGame,
       };
       if (gmap[step.gameId]) gmap[step.gameId]();
     }
@@ -1237,11 +1333,427 @@ function drawHallmarks() {
   ctx.fillStyle='#00d4ff'; ctx.font='700 11px Space Grotesk'; ctx.textAlign='center'; ctx.fillText('CANCER',cx,cy+4);
 }
 
+// ── XP LEVEL SYSTEM ──
+const XP_LEVELS = [
+  {lvl:1,title:'Gene Novice',min:0,color:'#94a3b8'},
+  {lvl:2,title:'DNA Explorer',min:200,color:'#10b981'},
+  {lvl:3,title:'Mutation Hunter',min:500,color:'#3b82f6'},
+  {lvl:4,title:'Pathway Analyst',min:900,color:'#00d4ff'},
+  {lvl:5,title:'Oncology Scholar',min:1400,color:'#7c3aed'},
+  {lvl:6,title:'Cancer Genomicist',min:2000,color:'#f59e0b'},
+  {lvl:7,title:'Clinical Researcher',min:2800,color:'#ef4444'},
+  {lvl:8,title:'Genomics Expert',min:3800,color:'#a78bfa'},
+  {lvl:9,title:'Principal Scientist',min:5000,color:'#22d3ee'},
+  {lvl:10,title:'Chief Oncologist',min:7000,color:'#f87171'},
+];
+function getLevel(xp) {
+  for (let i = XP_LEVELS.length-1; i >= 0; i--) {
+    if (xp >= XP_LEVELS[i].min) return XP_LEVELS[i];
+  }
+  return XP_LEVELS[0];
+}
+function updateLevelBadge() {
+  const xp = state.xp || 0;
+  const lvl = getLevel(xp);
+  const el = document.getElementById('levelBadge');
+  if (el) { el.textContent = `Lv ${lvl.lvl} ${lvl.title}`; el.style.color = lvl.color; el.style.borderColor = lvl.color + '44'; el.style.background = lvl.color + '18'; }
+}
+
+// ── CONFETTI ──
+function launchConfetti() {
+  const colors = ['#00d4ff','#7c3aed','#10b981','#f59e0b','#ef4444','#a78bfa','#f87171','#22d3ee'];
+  for (let i = 0; i < 90; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    const isCircle = Math.random() > 0.5;
+    el.style.cssText = `left:${Math.random()*100}vw;background:${colors[i%colors.length]};animation-duration:${0.8+Math.random()*1.2}s;animation-delay:${Math.random()*0.6}s;transform:rotate(${Math.random()*360}deg);width:${6+Math.random()*6}px;height:${6+Math.random()*10}px;${isCircle?'border-radius:50%':''}`;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2800);
+  }
+}
+
+// ── URL HASH ROUTING ──
+function updateHash() {
+  history.replaceState(null, '', `#${currentPathId}/${currentLessonIdx}`);
+}
+function loadFromHash() {
+  const hash = location.hash.slice(1);
+  if (!hash) return;
+  const [pathId, idxStr] = hash.split('/');
+  if (PATHS[pathId] && idxStr !== undefined) {
+    currentPathId = pathId;
+    currentLessonIdx = parseInt(idxStr) || 0;
+    document.querySelectorAll('.path-tab').forEach(t => t.classList.remove('active'));
+    const tab = document.querySelector(`.path-tab.${pathId[0]}`);
+    if (tab) { tab.classList.add('active'); }
+  }
+}
+
+// ── KEYBOARD NAVIGATION ──
+document.addEventListener('keydown', e => {
+  if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  if (e.key === 'ArrowRight' || (e.key === 'Enter' && e.target.tagName !== 'BUTTON')) {
+    const nb = document.getElementById('stepNextBtn') || document.getElementById('lessonNextBtn');
+    if (nb && !nb.disabled) nb.click();
+  }
+  if (e.key === 'ArrowLeft') {
+    const prev = document.querySelector('.nav-btn.prev:not([disabled])');
+    if (prev) prev.click();
+  }
+  if (e.key === '?') showSettings();
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.modal-overlay.show').forEach(m => m.classList.remove('show'));
+  }
+});
+
+// ── MODALS ──
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function showSettings() { document.getElementById('settingsModal').classList.add('show'); }
+function confirmReset() {
+  if (confirm('Reset all progress? XP, completed lessons, and streak will be cleared. This cannot be undone.')) {
+    localStorage.removeItem('glState');
+    location.reload();
+  }
+}
+
+// ── ALL ACHIEVEMENTS DATA ──
+const ALL_ACHIEVEMENTS = [
+  {id:'first',trigger:'b0',name:'First Step!',desc:'Completed your first lesson',icon:'🎯'},
+  {id:'dna',trigger:'b1',name:'DNA Decoded',desc:'Mastered the double helix',icon:'🧬'},
+  {id:'central',trigger:'b2',name:'Central Dogma',desc:'Understood transcription & translation',icon:'🔧'},
+  {id:'mutant',trigger:'b3',name:'Mutation Hunter',desc:'Identified DNA mutation types',icon:'⚡'},
+  {id:'onco',trigger:'b4',name:'Oncogene Expert',desc:'Understood oncogene activation',icon:'🚀'},
+  {id:'brakes',trigger:'b5',name:'Genome Guardian',desc:'Learned the two-hit hypothesis',icon:'🛑'},
+  {id:'hallmarks',trigger:'b6',name:'Hallmark Scholar',desc:'Mastered all 10 cancer hallmarks',icon:'🎯'},
+  {id:'kinase',trigger:'b7',name:'Kinase Master',desc:'Understood signal cascades',icon:'⚙️'},
+  {id:'clinical',trigger:'b8',name:'Clinical Reader',desc:'Can interpret genomic reports',icon:'📋'},
+  {id:'immuno',trigger:'b9',name:'Immuno Pioneer',desc:'Understood checkpoint therapy',icon:'🛡️'},
+  {id:'graduate',trigger:'b10',name:'Path Pioneer',desc:'Completed the Beginner path',icon:'🎓'},
+  {id:'intermediate',trigger:'i4',name:'Deep Diver',desc:'Completed Intermediate path',icon:'🔬'},
+  {id:'advanced',trigger:'a4',name:'Computational Genius',desc:'Completed Advanced path',icon:'💻'},
+];
+
+// ── ACHIEVEMENTS GALLERY ──
+function showAchievements() {
+  const modal = document.getElementById('achModal');
+  const content = document.getElementById('achModalContent');
+  modal.classList.add('show');
+  const xp = state.xp || 0;
+  const lvl = getLevel(xp);
+  const nextLvl = XP_LEVELS.find(l => l.min > xp) || XP_LEVELS[XP_LEVELS.length-1];
+  const pct = Math.min(100, ((xp - lvl.min) / Math.max(1, nextLvl.min - lvl.min)) * 100);
+  content.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--border2);border-radius:12px;padding:1rem;margin-bottom:1.25rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem">
+        <div>
+          <div style="font-size:0.68rem;color:var(--text3);font-weight:700;text-transform:uppercase;letter-spacing:1px">Current Level</div>
+          <div style="font-size:1.05rem;font-weight:800;color:${lvl.color}">Lv ${lvl.lvl} — ${lvl.title}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:0.68rem;color:var(--text3)">Total XP</div>
+          <div style="font-size:1.3rem;font-weight:800;color:var(--accent4)">${xp}</div>
+        </div>
+      </div>
+      <div class="progress-bar-outer" style="height:5px"><div class="progress-bar-inner" style="width:${pct}%;background:${lvl.color}"></div></div>
+      <div style="font-size:0.7rem;color:var(--text3);margin-top:4px">${nextLvl.min > xp ? (nextLvl.min-xp)+' XP to Lv '+(lvl.lvl+1)+' ('+nextLvl.title+')' : '⭐ MAX LEVEL!'}</div>
+    </div>
+    <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text3);margin-bottom:0.6rem">Badges (${ALL_ACHIEVEMENTS.filter(a=>state.completed[a.trigger]).length}/${ALL_ACHIEVEMENTS.length} earned)</div>
+    <div class="ach-badge-grid">
+      ${ALL_ACHIEVEMENTS.map(a => {
+        const earned = !!state.completed[a.trigger];
+        return `<div class="ach-badge ${earned?'earned':''}">
+          <div class="ach-badge-icon" style="opacity:${earned?1:0.2}">${a.icon}</div>
+          <div class="ach-badge-name" style="color:${earned?'var(--accent4)':'var(--text3)'}">${a.name}</div>
+          <div class="ach-badge-desc">${a.desc}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ── DAILY CHALLENGE ──
+function showDailyChallenge() {
+  const modal = document.getElementById('dailyModal');
+  const content = document.getElementById('dailyContent');
+  modal.classList.add('show');
+  const todayKey = new Date().toDateString();
+  const done = state.dailyDone === todayKey;
+  const allLessons = [...PATHS.beginner.modules, ...PATHS.intermediate.modules, ...PATHS.advanced.modules].filter(m => m.quiz);
+  const seed = todayKey.split('').reduce((a,c) => a + c.charCodeAt(0), 0);
+  const lesson = allLessons[seed % allLessons.length];
+  if (done) {
+    content.innerHTML = `<div style="text-align:center;padding:1.5rem">
+      <div style="font-size:3rem;margin-bottom:0.75rem">✅</div>
+      <div style="font-weight:700;font-size:1.05rem;margin-bottom:0.5rem">Challenge Complete!</div>
+      <div style="color:var(--text2);font-size:0.88rem">You finished today's challenge. Come back tomorrow!</div>
+      <div style="margin-top:1rem;font-size:0.82rem;color:var(--text3)">Streak: <strong style="color:var(--accent4)">${state.streak||1} days 🔥</strong> · XP: <strong style="color:var(--accent)">${state.xp||0}</strong></div>
+    </div>`;
+    return;
+  }
+  window._dailyQuiz = { ...lesson.quiz, lessonId:'daily', xp:50 };
+  content.innerHTML = `<div>
+    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:0.65rem 0.9rem;margin-bottom:1rem;display:flex;align-items:center;gap:8px">
+      <span>📅</span><span style="font-size:0.82rem;color:var(--accent4);font-weight:600">Daily Challenge · +50 XP · From: ${lesson.title}</span>
+    </div>
+    <div style="font-size:0.97rem;font-weight:600;margin-bottom:1rem;line-height:1.5">${lesson.quiz.q}</div>
+    <div style="display:flex;flex-direction:column;gap:8px" id="dailyOpts">
+      ${lesson.quiz.opts.map((o,i) => `<button class="kc-btn" onclick="answerDaily(${i})">${o}</button>`).join('')}
+    </div>
+    <div class="kc-feedback" id="dailyFeedback" style="margin-top:0.75rem"></div>
+  </div>`;
+}
+function answerDaily(selected) {
+  const q = window._dailyQuiz; if (!q) return;
+  const btns = document.querySelectorAll('#dailyOpts .kc-btn');
+  btns.forEach(b => b.disabled = true);
+  const ok = selected === q.correct;
+  if (btns[selected]) btns[selected].classList.add(ok?'correct':'wrong');
+  if (btns[q.correct]) btns[q.correct].classList.add('correct');
+  const fb = document.getElementById('dailyFeedback');
+  if (fb) { fb.className = `kc-feedback show ${ok?'correct':'wrong'}`; fb.innerHTML = (ok?'✅ Correct! ':'❌ Not quite — ') + q.exp; }
+  const todayKey = new Date().toDateString();
+  state.dailyDone = todayKey;
+  if (ok) { state.xp = (state.xp||0) + 50; launchConfetti(); }
+  saveState();
+  document.getElementById('xpDisplay').textContent = state.xp || 0;
+  updateLevelBadge();
+  const dot = document.querySelector('#dailyBtn .daily-dot');
+  if (dot) dot.remove();
+}
+
+// ── FLASH CARD REVIEW ──
+function showFlashCards() {
+  const modal = document.getElementById('flashModal');
+  const content = document.getElementById('flashContent');
+  modal.classList.add('show');
+  const lessons = [...PATHS.beginner.modules, ...PATHS.intermediate.modules, ...PATHS.advanced.modules].filter(m => state.completed[m.id] && m.quiz);
+  if (lessons.length === 0) {
+    content.innerHTML = `<div style="text-align:center;padding:2rem;color:var(--text2);font-size:0.9rem">Complete some lessons first to review them here!</div>`;
+    return;
+  }
+  let fi = 0;
+  function renderFlash() {
+    const l = lessons[fi];
+    content.innerHTML = `
+      <div style="font-size:0.75rem;color:var(--text3);text-align:center;margin-bottom:0.75rem">Card ${fi+1} / ${lessons.length} · Click to flip · <em style="color:var(--accent3)">Tap anywhere on card</em></div>
+      <div class="flash-card-wrap" onclick="this.querySelector('.flash-card').classList.toggle('flipped')">
+        <div class="flash-card" style="min-height:160px">
+          <div class="flash-front"><div>
+            <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:0.6rem">QUESTION · ${l.title}</div>
+            <div style="font-size:0.95rem;font-weight:600;line-height:1.5">${l.quiz.q}</div>
+          </div></div>
+          <div class="flash-back"><div>
+            <div style="font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent3);margin-bottom:0.5rem">ANSWER</div>
+            <div style="font-size:0.9rem;font-weight:700;color:var(--accent3);margin-bottom:0.5rem">${l.quiz.opts[l.quiz.correct]}</div>
+            <div style="font-size:0.8rem;color:var(--text2);line-height:1.6">${l.quiz.exp}</div>
+          </div></div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:0.75rem">
+        <button onclick="(${`()=>{if(fi>0){fi--;renderFlash();}}`})()" style="padding:6px 14px;border-radius:8px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:Inter,sans-serif;font-size:0.85rem" ${fi===0?'disabled':''}>← Prev</button>
+        <span style="font-size:0.75rem;color:var(--text3)">${l.icon} ${l.title}</span>
+        <button onclick="(${`()=>{if(fi<lessons.length-1){fi++;renderFlash();}}`})()" style="padding:6px 14px;border-radius:8px;border:1px solid var(--accent);background:rgba(0,212,255,0.06);color:var(--accent);cursor:pointer;font-family:Inter,sans-serif;font-size:0.85rem" ${fi===lessons.length-1?'disabled':''}>Next →</button>
+      </div>`;
+  }
+  renderFlash();
+}
+
+// ── 5 NEW INTERACTIVE GAMES ──
+
+function initMutationSpotterGame() {
+  const zone = document.getElementById('gameZone'); if (!zone) return;
+  const rounds = [
+    { label:'One nucleotide changed — a different amino acid is now encoded:', normal:'ATG · GAC · TTC · TAA', mutant:'ATG · [GTC] · TTC · TAA', answer:'Missense', opts:['Missense','Nonsense','Frameshift','Silent'], exp:'GAC (Aspartic acid) → GTC (Valine): same position, different amino acid. This is a missense mutation. Famous example: KRAS G12V.' },
+    { label:'One base changed — a STOP codon now appears mid-sequence:', normal:'ATG · GAC · TTC · TAA', mutant:'ATG · GAC · [TGA] · TAA', answer:'Nonsense', opts:['Missense','Nonsense','Silent','Frameshift'], exp:'TTC (Phe) → TGA (Stop codon): translation terminates prematurely. Nonsense mutations produce truncated, usually non-functional proteins.' },
+    { label:'A base was inserted — how does this change the reading frame?', normal:'ATG · GAC · TTC · TAA', mutant:'ATG · G[A]AC · TTC · TAA', answer:'Frameshift (Insertion)', opts:['Frameshift (Insertion)','Frameshift (Deletion)','Missense','Silent'], exp:'Inserting one base shifts every downstream codon. All amino acids after the insertion are wrong = frameshift. Often produces a premature stop codon too.' },
+    { label:'One nucleotide changed — but the same amino acid is still produced:', normal:'ATG · GAC · TTC · TAA', mutant:'ATG · GAC · [TTT] · TAA', answer:'Silent', opts:['Missense','Nonsense','Silent','Frameshift'], exp:'TTC and TTT both encode Phenylalanine. No amino acid change = silent (synonymous) mutation. The genetic code is degenerate — most amino acids have multiple codons.' },
+  ];
+  let qi = 0, score = 0;
+  window._mutAns = function(chosen, correct, expIdx) {
+    const ok = chosen === correct; if (ok) score++;
+    qi++;
+    const exp = rounds[qi-1].exp;
+    zone.innerHTML = `<div style="padding:1.25rem"><div style="font-size:1.1rem;font-weight:700;color:${ok?'#10b981':'#ef4444'};margin-bottom:0.6rem">${ok?'✅ Correct!':'❌ It was: '+correct}</div><div style="font-size:0.84rem;color:var(--text2);line-height:1.6">${exp}</div></div>`;
+    setTimeout(render, 1800);
+  };
+  function render() {
+    if (qi >= rounds.length) {
+      zone.innerHTML = `<div style="text-align:center;padding:1.5rem"><div style="font-size:2.5rem">🔬</div><div style="font-size:1.4rem;font-weight:800;color:${score>=3?'#10b981':'#f59e0b'};margin:0.5rem 0">${score}/${rounds.length} Correct</div><div style="color:var(--text2);font-size:0.88rem">${score>=3?'Excellent! You can identify mutation types.':'Review the mutations table in the lesson.'}</div><button onclick="document.getElementById('stepNextBtn').disabled=false" style="margin-top:1rem;padding:8px 20px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-family:Inter,sans-serif">Continue →</button></div>`;
+      return;
+    }
+    const r = rounds[qi];
+    const mutHtml = r.mutant.replace(/\[([^\]]+)\]/g, `<span style="background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.5);border-radius:3px;padding:0 3px;color:#f87171;font-weight:700">$1</span>`);
+    const normHtml = r.normal.replace(/\[([^\]]+)\]/g, '$1');
+    zone.innerHTML = `<div>
+      <div style="font-size:0.84rem;color:var(--text2);margin-bottom:0.85rem">${r.label}</div>
+      <div style="background:rgba(16,185,129,0.05);border:1px solid rgba(16,185,129,0.2);border-radius:9px;padding:0.7rem 0.9rem;margin-bottom:5px;font-family:'Space Grotesk',sans-serif"><div style="font-size:0.65rem;color:#10b981;font-weight:700;margin-bottom:3px">NORMAL</div><div style="font-size:0.9rem;letter-spacing:0.05em">${normHtml}</div></div>
+      <div style="background:rgba(239,68,68,0.04);border:1px solid rgba(239,68,68,0.18);border-radius:9px;padding:0.7rem 0.9rem;margin-bottom:1rem;font-family:'Space Grotesk',sans-serif"><div style="font-size:0.65rem;color:#ef4444;font-weight:700;margin-bottom:3px">MUTANT</div><div style="font-size:0.9rem;letter-spacing:0.05em">${mutHtml}</div></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+        ${r.opts.map(o => `<button onclick="window._mutAns('${o.replace(/'/g,"\\'")}','${r.answer.replace(/'/g,"\\'")}',${qi})" style="padding:8px 10px;border-radius:8px;border:1px solid var(--border2);background:rgba(255,255,255,0.03);color:var(--text);font-size:0.82rem;cursor:pointer;text-align:left;font-family:Inter,sans-serif;transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">${o}</button>`).join('')}
+      </div>
+      <div style="font-size:0.72rem;color:var(--text3);text-align:center;margin-top:0.6rem">Round ${qi+1} / ${rounds.length} · Score: ${score}</div>
+    </div>`;
+  }
+  render();
+}
+
+function initDrugMatchGame() {
+  const zone = document.getElementById('gameZone'); if (!zone) return;
+  const pairs = [
+    {drug:'Imatinib (Gleevec)',target:'BCR-ABL · CML',c:'#10b981'},
+    {drug:'Vemurafenib',target:'BRAF V600E · Melanoma',c:'#3b82f6'},
+    {drug:'Trastuzumab (Herceptin)',target:'HER2 amplification',c:'#7c3aed'},
+    {drug:'Olaparib',target:'PARP · BRCA1/2 def.',c:'#f59e0b'},
+    {drug:'Pembrolizumab',target:'PD-1 checkpoint',c:'#00d4ff'},
+  ];
+  const shuffledIdxs = [...pairs.keys()].sort(()=>Math.random()-0.5);
+  let selDrug = null, matched = new Set(), wrongFlash = null;
+  window._selDrug = i => {
+    if (matched.has(i)) return;
+    selDrug = (selDrug===i) ? null : i;
+    wrongFlash = null;
+    render();
+  };
+  window._selTarget = si => {
+    const pairIdx = shuffledIdxs[si];
+    if (matched.has(pairIdx)) return;
+    if (selDrug === null) return;
+    if (selDrug === pairIdx) {
+      matched.add(pairIdx); selDrug = null; wrongFlash = null;
+    } else {
+      wrongFlash = {drug:selDrug, target:pairIdx}; selDrug = null;
+      setTimeout(() => { wrongFlash = null; render(); }, 500);
+    }
+    render();
+  };
+  function render() {
+    const done = matched.size === pairs.length;
+    zone.innerHTML = `<div>
+      <div style="font-size:0.78rem;color:var(--text3);text-align:center;margin-bottom:0.75rem">Click a drug → then its target to match (${matched.size}/${pairs.length})</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+        <div>${pairs.map((p,i)=>{const m=matched.has(i),s=selDrug===i,w=wrongFlash&&wrongFlash.drug===i;return `<div onclick="window._selDrug(${i})" style="padding:7px 9px;border-radius:8px;border:2px solid ${m?p.c:w?'#ef4444':s?p.c:'var(--border2)'};background:${m?p.c+'15':w?'rgba(239,68,68,0.08)':s?p.c+'10':'rgba(255,255,255,0.02)'};color:${m?p.c:w?'#f87171':s?p.c:'var(--text2)'};font-size:0.78rem;cursor:pointer;margin-bottom:4px;transition:all 0.2s;font-weight:${s?700:400}">${m?'✅ ':''} ${p.drug}</div>`;}).join('')}</div>
+        <div>${shuffledIdxs.map((pIdx,si)=>{const p=pairs[pIdx],m=matched.has(pIdx),w=wrongFlash&&wrongFlash.target===pIdx;return `<div onclick="window._selTarget(${si})" style="padding:7px 9px;border-radius:8px;border:2px solid ${m?p.c:w?'#ef4444':'var(--border2)'};background:${m?p.c+'15':w?'rgba(239,68,68,0.08)':'rgba(255,255,255,0.02)'};color:${m?p.c:w?'#f87171':'var(--text2)'};font-size:0.78rem;cursor:pointer;margin-bottom:4px;transition:all 0.2s">${m?'✅ ':''} ${p.target}</div>`;}).join('')}</div>
+      </div>
+      ${done?`<div style="text-align:center;margin-top:0.75rem;padding:0.6rem;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.2);border-radius:10px"><div style="font-weight:700;color:#10b981">🎉 All 5 matched!</div><button onclick="document.getElementById('stepNextBtn').disabled=false" style="margin-top:0.4rem;padding:6px 16px;background:var(--accent3);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-family:Inter,sans-serif">Continue →</button></div>`:''}
+    </div>`;
+  }
+  render();
+}
+
+function initPathwayOrderGame() {
+  const zone = document.getElementById('gameZone'); if (!zone) return;
+  const correct = ['Growth Factor (EGF)','EGFR (Receptor)','RAS (GTP-bound)','RAF (BRAF/CRAF)','MEK 1/2','ERK 1/2 → Nucleus'];
+  const cols = ['#10b981','#00d4ff','#3b82f6','#7c3aed','#f59e0b','#ef4444'];
+  const shuffled = [...correct.keys()].sort(()=>Math.random()-0.5);
+  let picks = [];
+  window._pathPick = idx => {
+    if (picks.includes(idx)) return;
+    picks.push(idx);
+    render();
+  };
+  window._pathReset = () => { picks = []; render(); };
+  function render() {
+    const done = picks.length === correct.length;
+    const allOk = done && picks.every((v,i) => v===i);
+    zone.innerHTML = `<div>
+      <div style="font-size:0.82rem;color:var(--text2);text-align:center;margin-bottom:0.75rem">${done?(allOk?'🎉 Perfect order!':'❌ Not quite — see correct order below'):'Click the nodes in the correct cascade order (1 → 6)'}</div>
+      ${!done?`<div style="display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin-bottom:1rem">${shuffled.map(idx=>{const picked=picks.includes(idx),num=picks.indexOf(idx);return `<div onclick="window._pathPick(${idx})" style="cursor:${picked?'default':'pointer'};padding:7px 12px;border-radius:8px;border:2px solid ${picked?cols[idx]+'88':'var(--border2)'};background:${picked?cols[idx]+'12':'rgba(255,255,255,0.02)'};color:${picked?cols[idx]:'var(--text2)'};font-size:0.8rem;transition:all 0.2s;position:relative">${correct[idx]}${picked?`<span style="position:absolute;top:-7px;right:-7px;width:17px;height:17px;background:${cols[idx]};border-radius:50%;color:#000;font-size:0.6rem;font-weight:800;display:flex;align-items:center;justify-content:center">${num+1}</span>`:''}</div>`;}).join('')}</div>`:''}
+      ${done?`<div style="display:flex;flex-direction:column;align-items:center;gap:3px;margin-bottom:1rem">${correct.map((n,i)=>{const ok=picks[i]===i;return `<div style="display:flex;flex-direction:column;align-items:center"><div style="padding:6px 18px;border-radius:8px;border:2px solid ${ok?cols[i]:'#ef4444'};background:${ok?cols[i]+'18':'rgba(239,68,68,0.08)'};color:${ok?cols[i]:'#f87171'};font-size:0.8rem;min-width:170px;text-align:center">${ok?'✅':'❌'} ${n}</div>${i<correct.length-1?`<div style="color:${ok?cols[i+1]:'rgba(255,255,255,0.1)'};margin:2px 0">↓</div>`:''}</div>`;}).join('')}</div>`:''}
+      <div style="display:flex;gap:8px;justify-content:center">
+        ${!done&&picks.length>0?`<button onclick="window._pathReset()" style="padding:6px 14px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-size:0.8rem;font-family:Inter,sans-serif">↺ Reset</button>`:''}
+        ${done?`<button onclick="document.getElementById('stepNextBtn').disabled=false" style="padding:8px 20px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-family:Inter,sans-serif">Continue →</button>`:''}
+      </div>
+    </div>`;
+  }
+  render();
+}
+
+function initCancerProfilerGame() {
+  const zone = document.getElementById('gameZone'); if (!zone) return;
+  const cases = [
+    { muts:['EGFR L858R exon 21','STK11 frameshift','KRAS wild-type','PD-L1 TPS 70%'], opts:['Lung adenocarcinoma','Colorectal cancer','Glioblastoma','Breast cancer'], answer:0, exp:'EGFR L858R is the classic LUAD (lung adenocarcinoma) driver. KRAS wild-type confirms this. STK11 loss can predict reduced immunotherapy response despite high PD-L1. EGFR TKIs (Osimertinib) are first-line.' },
+    { muts:['APC frameshift (truncation)','KRAS G12D','TP53 R248W missense','MSS status'], opts:['Colorectal carcinoma','Lung adenocarcinoma','Pancreatic cancer','Endometrial cancer'], answer:0, exp:'APC + KRAS + TP53 is the classic Vogelstein colorectal adenoma-carcinoma sequence. MSS (microsatellite stable) means low TMB, making immunotherapy unlikely to help.' },
+    { muts:['IDH1 R132H missense','ATRX loss','TERT promoter mutation','1p/19q intact'], opts:['Astrocytoma (IDH-mutant)','Oligodendroglioma','Glioblastoma (IDH-WT)','Medulloblastoma'], answer:0, exp:'IDH1 R132H + ATRX loss without 1p/19q co-deletion = IDH-mutant astrocytoma. If 1p/19q were co-deleted it would be oligodendroglioma. IDH mutation is a good prognostic marker.' },
+    { muts:['BRCA2 6174delT frameshift','TP53 missense','PTEN loss (del.)','HER2 not amplified'], opts:['High-grade serous ovarian','Lung squamous cell','CML (BCR-ABL+)','Cervical SCC'], answer:0, exp:'BRCA2 + TP53 + PTEN loss is classic high-grade serous ovarian carcinoma. BRCA2 loss makes these tumors highly sensitive to PARP inhibitors (Olaparib) via synthetic lethality.' },
+  ];
+  let qi = 0, score = 0;
+  window._profAns = function(sel, ans, expText) {
+    const ok = sel===ans; if (ok) score++;
+    qi++;
+    zone.innerHTML = `<div style="padding:1.25rem"><div style="font-size:1.1rem;font-weight:700;color:${ok?'#10b981':'#ef4444'};margin-bottom:0.6rem">${ok?'✅ Correct diagnosis!':'❌ Not quite...'}</div><div style="font-size:0.84rem;color:var(--text2);line-height:1.6">${expText}</div></div>`;
+    setTimeout(render, 2200);
+  };
+  function render() {
+    if (qi >= cases.length) {
+      zone.innerHTML = `<div style="text-align:center;padding:1.5rem"><div style="font-size:2.5rem">🏥</div><div style="font-size:1.4rem;font-weight:800;color:${score>=3?'#10b981':'#f59e0b'};margin:0.5rem 0">${score}/${cases.length} Correct</div><div style="color:var(--text2);font-size:0.88rem">${score>=3?'Excellent! You can profile cancer mutations.':'Review the cancer types in the lessons!'}</div><button onclick="document.getElementById('stepNextBtn').disabled=false" style="margin-top:1rem;padding:8px 20px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-family:Inter,sans-serif">Continue →</button></div>`;
+      return;
+    }
+    const c = cases[qi];
+    zone.innerHTML = `<div>
+      <div style="font-size:0.72rem;color:var(--text3);margin-bottom:0.65rem;text-align:center">Case ${qi+1}/${cases.length} · Score: ${score}</div>
+      <div style="font-size:0.78rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:0.4rem">Mutation Profile</div>
+      <div style="background:var(--card);border:1px solid var(--border2);border-radius:10px;padding:0.7rem 0.9rem;margin-bottom:1rem">
+        ${c.muts.map(m=>`<div style="display:flex;align-items:center;gap:7px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.82rem;font-family:'Space Grotesk',sans-serif"><span style="color:var(--accent);font-size:0.6rem">▸</span>${m}</div>`).join('')}
+      </div>
+      <div style="font-size:0.86rem;font-weight:600;margin-bottom:0.5rem">Most likely cancer type:</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        ${c.opts.map((o,i)=>`<button onclick="window._profAns(${i},${c.answer},'${c.exp.replace(/'/g,"\\'")}')" style="padding:8px 12px;border-radius:9px;border:1px solid var(--border2);background:rgba(255,255,255,0.02);color:var(--text);font-size:0.86rem;text-align:left;cursor:pointer;font-family:Inter,sans-serif;transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)';this.style.background='rgba(0,212,255,0.05)'" onmouseout="this.style.borderColor='var(--border2)';this.style.background='rgba(255,255,255,0.02)'">${o}</button>`).join('')}
+      </div>
+    </div>`;
+  }
+  render();
+}
+
+function initCodonGame() {
+  const zone = document.getElementById('gameZone'); if (!zone) return;
+  const codons = [
+    {codon:'AUG',answer:'Methionine (Start)',opts:['Methionine (Start)','Leucine','Valine','STOP'],exp:'AUG is the universal start codon and encodes Methionine. Every protein synthesis begins here. In cancer, AUG usage can be altered to produce oncoproteins.'},
+    {codon:'UAA',answer:'STOP',opts:['Lysine','Tyrosine','STOP','Threonine'],exp:'UAA, UAG, and UGA are the three stop codons — no amino acid is added. Nonsense mutations create premature stop codons, truncating proteins.'},
+    {codon:'UGG',answer:'Tryptophan',opts:['Cysteine','Arginine','STOP','Tryptophan'],exp:'UGG is the only codon for Tryptophan — no synonymous codons exist. It\'s the rarest amino acid in the human proteome.'},
+    {codon:'GUU',answer:'Valine',opts:['Leucine','Valine','Isoleucine','Alanine'],exp:'GUU encodes Valine. KRAS G12V has Glycine (GGU) → Valine (GUU) — a single nucleotide change powering ~10% of all cancers.'},
+    {codon:'CAG',answer:'Glutamine',opts:['Glutamic acid','Glutamine','Lysine','Histidine'],exp:'CAG encodes Glutamine. CAG repeat expansions in the huntingtin gene cause Huntington\'s disease by adding a toxic polyglutamine tract.'},
+    {codon:'UGA',answer:'STOP',opts:['Serine','Glycine','STOP','Cysteine'],exp:'UGA is a stop codon. Interestingly, in some organisms UGA also encodes selenocysteine — sometimes called the "21st amino acid."'},
+    {codon:'GCU',answer:'Alanine',opts:['Glycine','Alanine','Serine','Proline'],exp:'GCU, GCC, GCA, GCG all encode Alanine — a classic example of codon degeneracy (synonymous codons).'},
+    {codon:'UUU',answer:'Phenylalanine',opts:['Leucine','Phenylalanine','Isoleucine','Tryptophan'],exp:'UUU and UUC both encode Phenylalanine. UUU was the first codon decoded by Nirenberg and Matthaei in 1961 — a landmark in molecular biology.'},
+  ];
+  let qi = 0, score = 0;
+  window._codonAns = function(chosen, correct, exp) {
+    const ok = chosen===correct; if (ok) score++;
+    qi++;
+    zone.innerHTML = `<div style="padding:1.5rem;text-align:center"><div style="font-size:1.2rem;font-weight:700;color:${ok?'#10b981':'#ef4444'};margin-bottom:0.6rem">${ok?'✅ Correct!':'❌ It\'s '+correct}</div><div style="font-size:0.84rem;color:var(--text2);line-height:1.6">${exp}</div></div>`;
+    setTimeout(render, 1800);
+  };
+  function render() {
+    if (qi >= codons.length) {
+      zone.innerHTML = `<div style="text-align:center;padding:1.5rem"><div style="font-size:2.5rem">🧬</div><div style="font-size:1.4rem;font-weight:800;color:${score>=6?'#10b981':'#f59e0b'};margin:0.5rem 0">${score}/${codons.length} Correct</div><div style="color:var(--text2);font-size:0.88rem">${score>=6?'Excellent codon knowledge!':'Try memorising: AUG=Start, UAA/UAG/UGA=Stop, UGG=Trp'}</div><button onclick="document.getElementById('stepNextBtn').disabled=false" style="margin-top:1rem;padding:8px 20px;background:var(--accent);color:#000;border:none;border-radius:8px;cursor:pointer;font-weight:700;font-family:Inter,sans-serif">Continue →</button></div>`;
+      return;
+    }
+    const c = codons[qi];
+    zone.innerHTML = `<div style="text-align:center">
+      <div style="font-size:0.75rem;color:var(--text3);margin-bottom:0.6rem">Round ${qi+1}/${codons.length} · Score: ${score}</div>
+      <div style="font-size:0.85rem;color:var(--text2);margin-bottom:0.6rem">This mRNA codon encodes:</div>
+      <div style="font-size:3rem;font-weight:900;color:var(--accent);font-family:'Space Grotesk',sans-serif;letter-spacing:0.1em;margin-bottom:1.25rem;text-shadow:0 0 20px rgba(0,212,255,0.3)">${c.codon}</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:340px;margin:0 auto">
+        ${c.opts.map(o=>`<button onclick="window._codonAns('${o.replace(/'/g,"\\'")}','${c.answer.replace(/'/g,"\\'")}','${c.exp.replace(/'/g,"\\'")}')" style="padding:9px 10px;border-radius:9px;border:1px solid var(--border2);background:rgba(255,255,255,0.03);color:var(--text);font-size:0.85rem;cursor:pointer;font-family:Inter,sans-serif;transition:all 0.15s" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border2)'">${o}</button>`).join('')}
+      </div>
+    </div>`;
+  }
+  render();
+}
+
 // ── XP DISPLAY ──
 document.getElementById('xpDisplay').textContent = state.xp || 0;
 document.getElementById('streakDisplay').textContent = state.streak || 1;
 
 // ── INIT ──
+loadFromHash();
+updateLevelBadge();
+// Mark daily challenge button if not done today
+if (state.dailyDone !== new Date().toDateString()) {
+  setTimeout(() => {
+    const btn = document.getElementById('dailyBtn');
+    if (btn) { const dot = document.createElement('div'); dot.className = 'daily-dot'; btn.appendChild(dot); }
+  }, 100);
+}
 renderSidebar();
 renderLesson(currentLessonIdx);
 </script>
