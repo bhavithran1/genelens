@@ -1,6 +1,6 @@
 'use client';
 import { useState, useCallback } from 'react';
-import type { Lesson } from '@/lib/types';
+import type { Lesson, HookStep, GameStep } from '@/lib/types';
 import GameZone from '../games/GameZone';
 import QuizCard from './QuizCard';
 
@@ -8,10 +8,9 @@ interface Props {
   lesson: Lesson;
   isCompleted: boolean;
   onDone: () => void;
-  onNext: () => void;
 }
 
-export default function StepEngine({ lesson, isCompleted, onDone, onNext }: Props) {
+export default function StepEngine({ lesson, isCompleted, onDone }: Props) {
   const [step, setStep] = useState(0);
   const [quizDone, setQuizDone] = useState(isCompleted);
   const [gameDone, setGameDone] = useState(false);
@@ -72,7 +71,7 @@ export default function StepEngine({ lesson, isCompleted, onDone, onNext }: Prop
       {/* Step content */}
       <div key={`${lesson.id}-${step}`}>
         {currentStep?.type === 'hook' && (
-          <HookStep data={currentStep as any} />
+          <HookStep data={currentStep} />
         )}
         {currentStep?.type === 'learn' && (
           <>
@@ -84,9 +83,9 @@ export default function StepEngine({ lesson, isCompleted, onDone, onNext }: Prop
         )}
         {currentStep?.type === 'game' && (
           <GameZone
-            gameId={(currentStep as any).gameId}
-            title={(currentStep as any).title}
-            instructions={(currentStep as any).instructions}
+            gameId={currentStep.gameId}
+            title={currentStep.title}
+            instructions={currentStep.instructions}
             onComplete={() => setGameDone(true)}
           />
         )}
