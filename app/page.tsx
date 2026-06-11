@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import ParticleDNA from '@/components/ui/ParticleDNA';
+import HeroCanvas from '@/components/ui/HeroCanvas';
 
 const features = [
   { icon: '🗺️', title: 'Genome Explorer', desc: 'Navigate 40+ cancer genes on an interactive pan/zoom pathway map. Click any gene for clinical context, drugs, and mutation rates.', href: '/explorer', color: '#00d4ff' },
@@ -27,7 +27,7 @@ export default function Home() {
     <div>
       {/* Hero with particle DNA */}
       <section className="hero-section">
-        <ParticleDNA />
+        <HeroCanvas />
         <div className="hero-content">
           <div className="hero-badge">
             🧬 Now with CRISPR Lab + 11 Interactive Games

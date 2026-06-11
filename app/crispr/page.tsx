@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import Cas9Simulator from '@/components/crispr/Cas9Simulator';
+import Cas9Game from '@/components/crispr/Cas9Game';
 import GuideRNADesigner from '@/components/crispr/GuideRNADesigner';
 import OffTargetPredictor from '@/components/crispr/OffTargetPredictor';
 import TherapeuticsExplorer from '@/components/crispr/TherapeuticsExplorer';
@@ -37,7 +37,7 @@ export default function CRISPRPage() {
       {/* Tab content */}
       {tab === 'intro' && <CRISPRIntro onStart={() => setTab('design')} />}
       {tab === 'design' && <GuideRNADesigner onNext={() => setTab('cas9')} />}
-      {tab === 'cas9' && <Cas9Simulator onNext={() => setTab('offtarget')} />}
+      {tab === 'cas9' && <Cas9Game onNext={() => setTab('offtarget')} />}
       {tab === 'offtarget' && <OffTargetPredictor onNext={() => setTab('therapeutics')} />}
       {tab === 'therapeutics' && <TherapeuticsExplorer />}
     </div>

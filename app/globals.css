@@ -380,3 +380,45 @@ html, body {
   .hero-ctas      { flex-direction: column; align-items: center; }
   .hero-section   { min-height: 440px; }
 }
+
+/* ── Glass card ───────────────────────────────── */
+.glass {
+  background: rgba(16,16,26,0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+}
+
+/* ── Lesson content rich text ─────────────────── */
+.lesson-content h2 { font-size:1.3rem; font-weight:800; margin:1.5rem 0 0.6rem; color:var(--text); }
+.lesson-content h3 { font-size:1.1rem; font-weight:700; margin:1.2rem 0 0.5rem; color:var(--text); }
+.lesson-content p  { color:var(--text2); line-height:1.75; margin-bottom:0.85rem; font-size:0.93rem; }
+.lesson-content ul,.lesson-content ol { color:var(--text2); line-height:1.7; padding-left:1.4rem; margin-bottom:0.85rem; font-size:0.93rem; }
+.lesson-content li { margin-bottom:0.3rem; }
+.lesson-content strong { color:var(--text); font-weight:700; }
+.lesson-content code  { background:rgba(0,212,255,0.08); border:1px solid rgba(0,212,255,0.15); border-radius:4px; padding:0.1em 0.4em; font-size:0.88em; color:var(--accent); font-family:'Space Grotesk',monospace; }
+
+/* ── Scrollable horizontal strip ─────────────── */
+.hscroll { display:flex; gap:0.5rem; overflow-x:auto; padding-bottom:4px; scrollbar-width:none; }
+.hscroll::-webkit-scrollbar { display:none; }
+
+/* ── XP popup ─────────────────────────────────── */
+@keyframes xpPop {
+  0%   { opacity:0; transform:translateY(0) scale(0.8); }
+  20%  { opacity:1; transform:translateY(-20px) scale(1.1); }
+  80%  { opacity:1; transform:translateY(-28px) scale(1); }
+  100% { opacity:0; transform:translateY(-36px) scale(0.9); }
+}
+.xp-popup {
+  position:fixed; pointer-events:none; z-index:9999;
+  font-weight:900; font-family:'Space Grotesk',sans-serif;
+  color:#f59e0b; font-size:1.1rem; text-shadow:0 0 12px rgba(245,158,11,0.6);
+  animation:xpPop 1.4s ease forwards;
+}
+
+/* ── Page fade in ─────────────────────────────── */
+main { animation: fadeIn 0.35s ease; }
+
+/* ── Selection color ──────────────────────────── */
+::selection { background:rgba(0,212,255,0.25); color:#fff; }
