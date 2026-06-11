@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import HeroCanvas from '@/components/ui/HeroCanvas';
+import MutationTicker from '@/components/ui/MutationTicker';
+import PathwayPreview from '@/components/ui/PathwayPreview';
 
 const features = [
   { icon: '🗺️', title: 'Genome Explorer', desc: 'Navigate 40+ cancer genes on an interactive pan/zoom pathway map. Click any gene for clinical context, drugs, and mutation rates.', href: '/explorer', color: '#00d4ff' },
@@ -15,11 +17,29 @@ const stats = [
   { n: '100%', label: 'Free to Start' },
 ];
 
-const pathways = [
-  { icon: '🧬', title: 'RAS / MAPK', desc: 'KRAS, BRAF, MEK, ERK — the proliferation engine mutated in 30% of all cancers.' },
-  { icon: '🛡️', title: 'PI3K / AKT / mTOR', desc: 'Survival and growth. PIK3CA is the most mutated kinase in breast cancer.' },
-  { icon: '🔒', title: 'TP53 / Apoptosis', desc: 'Guardian of the genome. Mutated in >50% of all human cancers.' },
-  { icon: '🔬', title: 'DNA Repair / BRCA', desc: 'BRCA1/2, PARP — synthetic lethality and immunotherapy targets.' },
+const HOW_IT_WORKS = [
+  {
+    step: '01', icon: '🗺️', title: 'Explore the Genome Map',
+    desc: 'Open the Genome Explorer. Pan and zoom a live pathway map of 40+ cancer genes — exactly like Google Maps, but for your DNA.',
+    color: '#00d4ff',
+  },
+  {
+    step: '02', icon: '🎯', title: 'Complete Guided Missions',
+    desc: 'Follow progressive missions: find KRAS, trace the MAPK cascade, identify tumor suppressors. Each mission teaches real clinical concepts.',
+    color: '#7c3aed',
+  },
+  {
+    step: '03', icon: '✂️', title: 'Simulate CRISPR in the Lab',
+    desc: 'Design a guide RNA, scan for the PAM site, cut the target DNA, and choose a repair pathway — all in a hands-on game.',
+    color: '#10b981',
+  },
+];
+
+const DATA_SOURCES = [
+  { name: 'TCGA', desc: 'Mutation frequencies', url: '#' },
+  { name: 'COSMIC', desc: 'Clinical variants', url: '#' },
+  { name: 'ClinVar', desc: 'Pathogenicity data', url: '#' },
+  { name: 'FDA', desc: 'Approved drug labels', url: '#' },
 ];
 
 export default function Home() {
@@ -58,6 +78,9 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Live mutation ticker */}
+      <MutationTicker />
+
       {/* Features */}
       <section className="section-pad">
         <div className="container">
@@ -76,22 +99,50 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Pathways */}
-      <section style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '4rem 1.5rem' }}>
+      {/* Interactive MAPK pathway preview */}
+      <PathwayPreview />
+
+      {/* How It Works */}
+      <section style={{ padding: '5rem 1.5rem' }}>
         <div className="container">
-          <h2 className="section-title">Explore the key cancer pathways</h2>
-          <p style={{ textAlign: 'center', color: 'var(--text2)', marginBottom: '2.5rem', fontSize: '0.95rem' }}>40+ genes, 50+ connections, clinically annotated with approved drug targets</p>
-          <div className="pathways-grid">
-            {pathways.map(p => (
-              <div key={p.title} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: '1.5rem' }}>
-                <div style={{ fontSize: '1.8rem', marginBottom: '0.75rem' }}>{p.icon}</div>
-                <h3 style={{ fontSize: '1rem', fontWeight: 700, marginBottom: '0.5rem' }}>{p.title}</h3>
-                <p style={{ color: 'var(--text2)', fontSize: '0.84rem', lineHeight: 1.55 }}>{p.desc}</p>
+          <div style={{ textAlign: 'center', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--accent)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2 }}>How It Works</span>
+          </div>
+          <h2 className="section-title" style={{ marginBottom: '3.5rem' }}>From zero to genome explorer in 3 steps</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(250px,1fr))', gap: '2rem' }}>
+            {HOW_IT_WORKS.map((h, i) => (
+              <div key={h.step} style={{ position: 'relative' }}>
+                {i < HOW_IT_WORKS.length - 1 && (
+                  <div style={{ display: 'none', position: 'absolute', top: 28, right: -20, fontSize: '1.2rem', color: 'var(--text3)', zIndex: 1 }} className="how-arrow">›</div>
+                )}
+                <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 16, padding: '1.75rem', height: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+                    <span style={{ fontFamily: "'Space Grotesk',sans-serif", fontWeight: 900, fontSize: '0.7rem', color: h.color, opacity: 0.7, letterSpacing: 2 }}>{h.step}</span>
+                    <span style={{ fontSize: '1.75rem' }}>{h.icon}</span>
+                  </div>
+                  <h3 style={{ fontWeight: 800, fontSize: '1.05rem', fontFamily: "'Space Grotesk',sans-serif", marginBottom: '0.75rem', color: h.color }}>{h.title}</h3>
+                  <p style={{ color: 'var(--text2)', fontSize: '0.86rem', lineHeight: 1.65 }}>{h.desc}</p>
+                </div>
               </div>
             ))}
           </div>
-          <div style={{ textAlign: 'center', marginTop: '2.5rem' }}>
-            <Link href="/explorer" className="btn-primary">Open Genome Explorer →</Link>
+          <div style={{ textAlign: 'center', marginTop: '3rem' }}>
+            <Link href="/explorer" className="btn-primary">Begin your first mission →</Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Data provenance */}
+      <section style={{ background: 'rgba(255,255,255,0.015)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '1.75rem 1.5rem' }}>
+        <div className="container">
+          <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', justifyContent: 'center' }}>
+            <span style={{ fontSize: '0.72rem', color: 'var(--text3)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: 2, flexShrink: 0 }}>Data sourced from</span>
+            {DATA_SOURCES.map(d => (
+              <div key={d.name} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                <span style={{ fontWeight: 900, fontSize: '0.88rem', fontFamily: "'Space Grotesk',sans-serif", color: 'var(--text)' }}>{d.name}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text3)' }}>· {d.desc}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>

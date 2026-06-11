@@ -1,9 +1,10 @@
 'use client';
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo } from 'react';
 import { PATHWAY_NODES } from '@/data/pathway-data';
 import type { GeneNode } from '@/lib/types';
 import { CANCER_ABBREVIATIONS } from '@/lib/constants';
 import PathwayCanvas from '@/components/explorer/PathwayCanvas';
+import MissionPanel from '@/components/explorer/MissionPanel';
 
 const TYPE_COLORS: Record<string, string> = {
   oncogene: '#ef4444',
@@ -108,6 +109,9 @@ export default function ExplorerPage() {
           <GeneDetail gene={selected} onClose={() => setSelected(null)} />
         </div>
       )}
+
+      {/* Mission panel */}
+      <MissionPanel exploredGenes={explored} />
     </div>
   );
 }
