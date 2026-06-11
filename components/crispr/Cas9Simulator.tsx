@@ -56,20 +56,17 @@ export default function Cas9Simulator({ onNext }: { onNext: () => void }) {
 
       {/* Visual DNA strip */}
       <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: '1.5rem', marginBottom: '1.25rem' }}>
-        <div style={{ display: 'flex', gap: '3px', justifyContent: 'center', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+        <div className="dna-strip">
           {('ATGGAGGAGCCGCAGTCAGATCC' + 'NGG').split('').map((b, i) => {
             const isPAM = i >= 23;
             const isCut = (phase === 'cutting' || phase === 'repair' || phase === 'done') && i >= 17 && i <= 22;
             const isGuide = (phase === 'binding' || phase === 'cutting' || phase === 'repair' || phase === 'done') && i < 20;
             const col = isPAM ? '#f59e0b' : b === 'A' ? '#ef4444' : b === 'T' ? '#3b82f6' : b === 'G' ? '#10b981' : '#a78bfa';
             return (
-              <div key={i} style={{
-                width: 26, height: 26, borderRadius: 5, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.72rem', fontWeight: 700,
+              <div key={i} className="dna-base" style={{
                 background: isCut ? 'rgba(239,68,68,0.2)' : isGuide ? `${col}22` : `${col}12`,
                 border: `1px solid ${isCut ? '#ef4444' : isGuide ? `${col}66` : isPAM ? '#f59e0b44' : `${col}33`}`,
                 color: isCut ? '#ef4444' : col,
-                fontFamily: "'Space Grotesk',sans-serif",
-                transition: 'all 0.3s',
               }}>
                 {b}
               </div>
@@ -87,7 +84,7 @@ export default function Cas9Simulator({ onNext }: { onNext: () => void }) {
 
       {/* Repair choice */}
       {phase === 'repair' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
           {REPAIR_PATHS.map(r => (
             <button key={r.id} onClick={() => setRepairChoice(r.id)}
               style={{ padding: '1rem', borderRadius: 12, border: `2px solid ${repairChoice === r.id ? r.color : 'var(--border)'}`, background: repairChoice === r.id ? `${r.color}10` : 'var(--card)', textAlign: 'left', cursor: 'pointer', transition: 'all 0.2s' }}>

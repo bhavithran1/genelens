@@ -31,7 +31,7 @@ export default function Nav() {
           <span style={{ fontSize: '0.7rem', color: 'var(--accent2)', marginLeft: 4, fontWeight: 700 }}>AI</span>
         </Link>
 
-        <div style={{ display: 'flex', gap: '0.25rem', flex: 1 }}>
+        <div className="nav-links" style={{ flex: 1 }}>
           {links.map(l => (
             <Link key={l.href} href={l.href} style={{
               padding: '0.35rem 0.9rem', borderRadius: 8, fontSize: '0.88rem', textDecoration: 'none',

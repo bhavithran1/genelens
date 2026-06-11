@@ -25,10 +25,10 @@ export default function CRISPRPage() {
       </div>
 
       {/* Tab bar */}
-      <div style={{ display: 'flex', gap: '0.3rem', marginBottom: '2rem', flexWrap: 'wrap', borderBottom: '1px solid var(--border)', paddingBottom: '1rem' }}>
+      <div className="crispr-tabs">
         {TABS.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)}
-            style={{ padding: '0.5rem 1rem', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: '0.85rem', fontWeight: tab === t.id ? 700 : 400, background: tab === t.id ? 'rgba(16,185,129,0.12)' : 'transparent', color: tab === t.id ? '#10b981' : 'var(--text2)', transition: 'all 0.15s', fontFamily: 'Inter,sans-serif' }}>
+          <button key={t.id} onClick={() => setTab(t.id)} className="crispr-tab"
+            style={{ fontWeight: tab === t.id ? 700 : 400, background: tab === t.id ? 'rgba(16,185,129,0.12)' : 'transparent', color: tab === t.id ? '#10b981' : 'var(--text2)' }}>
             {t.label}
           </button>
         ))}
